@@ -4,87 +4,64 @@
 #include <locale.h>
 #include <time.h>
 
-typedef struct mouse_pos {
+struct TMouse{
 	int x;
 	int y;
-	int largura = 2;
-	int altura = 2;
-} Mouse;
+	int largura;
+	int altura;
+};
 
-typedef struct item {
+struct TItem{
 	char* nome;
 	char* image;
 	int x;
 	int y;
 	int largura;
 	int altura;
-} Item;
+};
 
-typedef struct porta {
+struct TPorta {
 	int pos_x;
 	int pos_y;
 	int largura;
 	int altura;
 	int indice_comodo;
 	bool aberta;	
-	
-	porta(int x,int y,int _largura, int _altura,int _indice_comodo,bool _aberta) {
-		pos_x = x;
-		pos_y = y;
-		largura = _largura;
-		altura = _altura;
-		indice_comodo = _indice_comodo;
-		aberta = _aberta;
-	}
-} Porta;
+};
 
-typedef struct corredor {
+struct TCorredor {
 	char* image;
-	Porta *portas;
-	
-	corredor(char* _image,Porta *_portas) {
-		image = _image;
-		portas = _portas;
-	}
-} Corredor;
+	TPorta *portas;
+};
 
-typedef  struct comodo{
+struct TComodo{
 	char* nome;
 	char* image;
 	int qtdItens;
-	Item* item;
-	
-	comodo(char* _nome, char* _image, int _qtdItens, Item* _item){
-		nome = _nome;
-		image = _image;
-		qtdItens = _qtdItens;
-		item = _item;
-	}
-	
-} Comodo;
-
+	TItem* item;
+};
 
 bool clicou = false;
 
-Mouse *mousePos(){
+TMouse *mousePos(){
 	int x,y,button;
-	Mouse mouse;
+	TMouse *mouse;
 	if(!ismouseclick(WM_LBUTTONDOWN) && clicou == false){
 //		getmouseclick(WM_LBUTTONDOWN,x,y);
 //		printf("Botão esquerdo (%d,%d)\n",mousex(),mousey());	
-		mouse.x = mousex();
-		mouse.y = mousey();
+		mouse->x = mousex();
+		mouse->y = mousey();
 //		printf("Botão esquerdo (%d,%d,%i)\n",mouse.x,mouse.y,clicou);
 		clearmouseclick(WM_LBUTTONDOWN);
 	} 
 	if(ismouseclick(WM_LBUTTONDOWN)){
-		mouse.x = mousex();
-		mouse.y = mousey();
+		mouse->x = mousex();
+		mouse->y = mousey();
 //		printf("clicou (%d,%d,%i)\n",mouse.x,mouse.y,clicou);
 		clearmouseclick(WM_LBUTTONDOWN);
 	}
 	
-	return &mouse;
+	return mouse;
 }
 
 bool verificaMouseClick() {
@@ -116,8 +93,8 @@ void *load_image(char* image_addres,int x,int y,int largura,int altura) {
 
 int pg = 1;
 
-Item criarItem(char*nome,char*image,int x,int y, int largura, int altura) {
-	Item item;
+TItem criarItem(char*nome,char*image,int x,int y, int largura, int altura) {
+	TItem item;
 	
 	item.nome = nome;
 	item.image = image;
@@ -129,11 +106,11 @@ Item criarItem(char*nome,char*image,int x,int y, int largura, int altura) {
 	return item;
 }
 
-int colisaoMouseItens(Mouse *mouse,Comodo *comodo) {
+int colisaoMouseItens(TMouse *mouse,TComodo *comodo) {
 //	printf("mouse(%d,%d)\n",mouse->x,mouse->y);
 //	printf("qtd(%d)\n",comodo->qtdItens,comodo->qtdItens);
 	for(int i = 0;i<comodo->qtdItens;i++) {
-		Item *item = comodo->item;
+		TItem *item = comodo->item;
 		if (mouse->x < item[i].x + item[i].largura && 
 			mouse->x + mouse->largura > item[i].x && 
 			mouse->y < item[i].y + item[i].altura && 
@@ -154,7 +131,7 @@ int colisaoMouseItens(Mouse *mouse,Comodo *comodo) {
 
 
 
-void mostrarItens(Item *itens, int qtd) {
+void mostrarItens(TItem *itens, int qtd) {
 	for(int i = 0;i< qtd;i++) {
 		printf("item: %s,%s,%d,%d,%d,%d \n",itens[i].nome,itens[i].image,itens[i].x,itens[i].y,itens[i].largura,itens[i].altura);
 	}
@@ -177,26 +154,26 @@ int main() {
 	int comodo_atual = 0;
 	void*image;
 	
-	Item *item_camera1 = (Item*) malloc(sizeof(Item)*3);
+	TItem *item_camera1 = (TItem*) malloc(sizeof(TItem)*3);
 	
-	Item lanterna = criarItem("lanterna","lanterna.bmp",200,150,50,50);
-	Item relogio = criarItem("Relogio","relogio.bmp",50,50,100,100);
-	Item caderno = criarItem("Caderno","caderno.bmp",80,300,100,100);
+	TItem lanterna = criarItem("lanterna","lanterna.bmp",200,150,50,50);
+	TItem relogio = criarItem("Relogio","relogio.bmp",50,50,100,100);
+	TItem caderno = criarItem("Caderno","caderno.bmp",80,300,100,100);
 	
 	item_camera1[0] = lanterna;
 	item_camera1[1] = relogio;
 	item_camera1[2] = caderno;
 	
-	Porta porta_quarto(100,400,100,400,1,true);
-	
-	Corredor corredor("corredor.bmp",&porta_quarto);
-	
-	Comodo quarto("quarto principal","quarto_principal.bmp",3,item_camera1);
+//	TPorta porta_quarto = (100,400,100,400,1,true);
+//	
+//	TCorredor corredor("corredor.bmp",&porta_quarto);
+//	
+//	TComodo quarto("quarto principal","quarto_principal.bmp",3,item_camera1);
 	
 	image = load_image("quarto0.bmp",0,0,1280,720);
  	
  	mostrarItens(item_camera1,2);
- 	Mouse *mouse = mousePos();
+ 	TMouse *mouse = mousePos();
  	
  	while(true) {
  		if(pg == 1) pg = 2; else pg = 1;
@@ -205,7 +182,7 @@ int main() {
 //		printf("Camera: %s,%s",camera1.nome,camera1.image);
  		
  		putimage(0,0,image,COPY_PUT);
- 		colisaoMouseItens(mouse,&quarto);
+// 		colisaoMouseItens(mouse,&quarto);
 // 		printf("mouse pos (%d,%d)\n",mouse->x,mouse->y);
 //		outtextxy(mousePos().x,mousePos().y,camera1.item[0].nome);
 		
