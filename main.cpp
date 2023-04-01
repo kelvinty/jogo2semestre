@@ -141,7 +141,7 @@ void mostrarItens(TItem *itens, int qtd) {
 //	return 0;
 //}
 
-
+// testandoooooooooo
 int main() {
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(1280, 720,"meu jogo");
