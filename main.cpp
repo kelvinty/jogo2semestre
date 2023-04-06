@@ -3,13 +3,14 @@
 #include <graphics.h>
 #include <locale.h>
 #include <time.h>
+int pg = 1;
 
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
-	void*image = malloc(aux);
+	void*img = malloc(aux);
 	readimagefile(endereco, x, y, largura, altura);
-	getimage(x, y, largura, altura, image);
-	return image;
+	getimage(x, y, largura, altura, img);
+	return img;
 }
 
 void deleteImage(void *image){
@@ -127,27 +128,35 @@ TCamera *criarCamera(int _id,char*_imagem,TItem* _itens,int _qtdItens, TSaida *_
 	camera->saida = _saida;
 }
 
-void *mostrarCamera(const TCamera *camera) {
+void mostrarCamera(const TCamera *camera) {
 	void *img = load_image(camera->imagem,1024,768,0,0);
-	putimage(0,0,img,COPY_PUT);
+	return putimage(0,0,img,COPY_PUT);
 }
 //
-void *mostrarItensCamera(const TCamera *camera) {
+void mostrarItensMaskCamera(const TCamera *camera) {
 	for(int i =0;i<camera->qtdItens;i++) {
-		void *image_mask = load_image(camera->itens[i].imagem_mask,camera->itens[i].largura,camera->itens[i].altura,camera->itens[i].x,camera->itens[i].y);
-		void *image = load_image(camera->itens[i].imagem,camera->itens[i].largura,camera->itens[i].altura,camera->itens[i].x,camera->itens[i].y);
-		
-		putimage(camera->itens[i].x, camera->itens[i].y, image_mask, AND_PUT);
-    	putimage(camera->itens[i].x, camera->itens[i].y, image, OR_PUT);
+		TItem item = camera->itens[i]; 
+		void *imagem_mask = load_image("dinamite_pb.bmp",item.largura,item.altura,item.x,item.y);
+		putimage(item.x, item.y, imagem_mask, AND_PUT);
+	
 	}
 }
 
-//void removeItensCamera(TCamera *camera) {
-//	for(int i =0;i<camera->qtdItens;i++) {
-//		free(camera->itens[i].imagem);
-//		free(camera->itens[i].imagem_mask);
-//	}
-//}
+void mostrarItensCamera(const TCamera *camera) {
+	for(int i =0;i<camera->qtdItens;i++) {
+		TItem item = camera->itens[i]; 
+		void *imagem = load_image("dinamite.bmp",item.largura,item.altura,item.x,item.y);
+		putimage(item.x, item.y, imagem, OR_PUT);
+	}
+}
+
+void removeItensCamera(TCamera *camera) {
+	for(int i =0;i<camera->qtdItens;i++) {
+		TItem item = camera->itens[i]; 
+		free(item.imagem);
+		free(item.imagem_mask);
+	}
+}
 
 //bool clicou = false;
 //TMouse *mousePos(){
@@ -228,8 +237,8 @@ int main() {
 	
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(1024, 768,"meu jogo");
-	int aux;
-	int pg = 1;
+	int aux,aux_mask;
+
 	int fps = 60;
     int frame_interval = 1000 / fps;
     
@@ -251,24 +260,38 @@ int main() {
 	
 	TCamera *camera0 = criarCamera(0,"quarto0.bmp",itens_camera0,1,saida0);
  	
- 	while(true) {
- 		setvisualpage(pg);
- 		if(pg == 1) pg = 2; else pg = 1;
+ 	aux = imagesize(200,200,100,100);
+ 	aux_mask = imagesize(200,200,100,100);
  		
+	void*img = malloc(aux);
+	void*mask = malloc(aux_mask);
+		
+	readimagefile("dinamite.bmp", 200, 200, 100, 100);
+	getimage(200, 200, 100, 100, img);
+		
+	readimagefile("dinamite_pb.bmp", 200, 200, 100, 100);
+	getimage(200, 200, 100, 100, mask);
+ 	
+ 	while(true) {
+ 		
+ 		if(pg == 1) pg = 2; else pg = 1;
+ 		setvisualpage(pg);
  		
  		//mostra elementos
  		cleardevice();
  		
  		mostrarCamera(camera0);
- 		mostrarItensCamera(camera0);
+ 		
+		putimage(200, 200,mask, AND_PUT);
+		putimage(200, 200, img, OR_PUT);
+// 		mostrarItensMaskCamera(camera0);
+//		mostrarItensCamera(camera0);	
+
+		//limpa Elementos
+		removeItensCamera(camera0);
 
  		setactivepage(pg);
- 		
- 		start_time = clock();
-        while ((current_time = clock()) - start_time < frame_interval){
-        	delay(1);
-		}
-         
+
 	}
  	
  	closegraph();
