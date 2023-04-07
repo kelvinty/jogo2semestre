@@ -205,21 +205,10 @@ void colisaoMouseItens(TMouse *mouse,TCamera *camera) {
 }
 
 
-//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
-//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
-//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
-//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
-//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
-//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
-//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
-//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
-
-int main() {
-	
+int Comeco(){
 	int count = 0;
 
-	setlocale(LC_ALL,"Portuguese");
-	initwindow(1024, 768,"meu jogo");
+
 	
 	TMouse *mouse = mousePos();
 	
@@ -258,6 +247,68 @@ int main() {
 
 	}
  	
+ 	closegraph();
+	return 0;
+}
+
+
+int Menu_Principal(){
+	int opcao = 1;
+	int gd = DETECT, gm;
+
+	TMouse *mouse = mousePos();
+
+    setbkcolor(BLACK);
+    cleardevice();
+    
+    setcolor(WHITE);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
+    outtextxy(100, 50, "HORROR HUT");
+    
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    rectangle(200, 150, 400, 200);
+    outtextxy(220, 165, "Jogar");
+    rectangle(200, 250, 400, 300);
+    outtextxy(220, 265, "Sair");
+    
+    while(true){
+    	int x = mousex();
+	    int y = mousey();
+    	if(x > 200 && x < 400 && y > 150 && y < 200){
+    	    if (ismouseclick(WM_LBUTTONDOWN)) {
+                Comeco();
+                break;
+            }
+        }
+        else if(x > 200 && x < 400 && y > 250 && y < 300){
+            if (ismouseclick(WM_LBUTTONDOWN)) {
+                break;
+            }	
+		}
+	}
+	
+	return 0;
+}
+//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
+//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
+//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
+//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
+//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
+//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
+//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
+//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
+
+int main() {
+	
+	int count = 0;
+
+	setlocale(LC_ALL,"Portuguese");
+	initwindow(1024, 768,"meu jogo");
+	
+	TMouse *mouse = mousePos();
+	
+	Menu_Principal();
+	
  	closegraph();
 	return 0;
 }
