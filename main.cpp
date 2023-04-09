@@ -188,9 +188,9 @@ bool verificaMouseClick() {
 
 
 
-void colisaoMouseItens(TMouse *mouse,TCamera *camera) {
-	for(int i = 0;i<camera->qtdItens;i++) {
-		TItem item = camera->itens[i];
+void colisaoMouseItens(TMouse *mouse,TCamera camera) {
+	for(int i = 0;i<camera.qtdItens;i++) {
+		TItem item = camera.itens[i];
 		if (mouse->x < item.x + item.largura && 
 			mouse->x + mouse->largura > item.x && 
 			mouse->y < item.y + item.altura && 
@@ -207,28 +207,26 @@ void colisaoMouseItens(TMouse *mouse,TCamera *camera) {
 	
 }
 
-void mudarDeCamera(int *camera_atual) {
-	int keyPressed;
-	keyPressed = getch();
-
-    if (keyPressed == 77) { // seta direcional para a direita
+void mudarDeCamera(int *camera_atual,int *tecla) {
+	
+    if (*tecla == 77) { // seta direcional para a direita
+    	*tecla = 0;
         *camera_atual = *camera_atual + 1;
         if(*camera_atual > 3) {
         	*camera_atual = 0;
 		}
-        printf("%d,%d\n",keyPressed, *camera_atual);
-    } else if (keyPressed == 75) { // seta direcional para a esquerda
+    } else if (*tecla == 75) { // seta direcional para a esquerda
+    	*tecla = 0;
         *camera_atual = *camera_atual - 1;
         if(*camera_atual < 0) {
         	*camera_atual = 3;
+        	;
 		}
-        printf("%d,%d\n",keyPressed, *camera_atual);
     }
     
 }
 
 
-<<<<<<< HEAD
 //TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
 //TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
 //TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
@@ -239,18 +237,12 @@ void mudarDeCamera(int *camera_atual) {
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int main() {
-	
+	int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
 	
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(1024, 768,"meu jogo");
-=======
-int Comeco(){
-	int count = 0;
-
-
->>>>>>> bcd2d012fd6fc5096b31507740b723185dd71b3a
 	
 	TMouse *mouse = mousePos();
 	
@@ -265,7 +257,7 @@ int Comeco(){
 	itens_final0[0] = *dinamite;
 	
 	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem));
-	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
+//	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
 	itens_camera0[0] = *dinamite; 
 	
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
@@ -277,7 +269,7 @@ int Comeco(){
 	void *img_cam3 = load_image("quarto3.bmp",1024,768,0,0);
 	
 	TCamera *camera0 = criarCamera(0,img_cam0,itens_camera0,1,saida0);
-	TCamera *camera1 = criarCamera(1,img_cam1,itens_camera1,1,saida0);
+	TCamera *camera1 = criarCamera(1,img_cam1,itens_camera0,1,saida0);
 	TCamera *camera2 = criarCamera(2,img_cam2,itens_camera0,1,saida0);
 	TCamera *camera3 = criarCamera(3,img_cam3,itens_camera0,1,saida0);
  	
@@ -299,82 +291,23 @@ int Comeco(){
  		if(pg == 1) pg = 2; else pg = 1;
  		setvisualpage(pg);
  		cleardevice();
- 		mudarDeCamera(&camera_atual);
+ 		mudarDeCamera(&camera_atual,&tecla);
 // 		printf("camera {id:%d: nome:%s, atual:%d\n",cameras[camera_atual]->id,cameras[camera_atual].imagem,camera_atual);
  		mostrarCamera(cameras[camera_atual]);
 		mostrarItensCamera(cameras[camera_atual]);
 			
-//		colisaoMouseItens(mousePos(),cameras[camera_atual]);
+		colisaoMouseItens(mousePos(),cameras[camera_atual]);
 		
  		setactivepage(pg);
-
+ 		
+		if (kbhit())
+		    tecla = getch();
+		delay(50);
 	}
 	
 	free(itens_camera0);
  	free(cameras);
  	
- 	closegraph();
-	return 0;
-}
-
-
-int Menu_Principal(){
-	int opcao = 1;
-	int gd = DETECT, gm;
-
-	TMouse *mouse = mousePos();
-
-    setbkcolor(BLACK);
-    cleardevice();
-    
-    setcolor(WHITE);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
-    outtextxy(100, 50, "HORROR HUT");
-    
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-    rectangle(200, 150, 400, 200);
-    outtextxy(220, 165, "Jogar");
-    rectangle(200, 250, 400, 300);
-    outtextxy(220, 265, "Sair");
-    
-    while(true){
-    	int x = mousex();
-	    int y = mousey();
-    	if(x > 200 && x < 400 && y > 150 && y < 200){
-    	    if (ismouseclick(WM_LBUTTONDOWN)) {
-                Comeco();
-                break;
-            }
-        }
-        else if(x > 200 && x < 400 && y > 250 && y < 300){
-            if (ismouseclick(WM_LBUTTONDOWN)) {
-                break;
-            }	
-		}
-	}
-	
-	return 0;
-}
-//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
-//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
-//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
-//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
-//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
-//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
-//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
-//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
-
-int main() {
-	
-	int count = 0;
-
-	setlocale(LC_ALL,"Portuguese");
-	initwindow(1024, 768,"meu jogo");
-	
-	TMouse *mouse = mousePos();
-	
-	Menu_Principal();
-	
  	closegraph();
 	return 0;
 }
