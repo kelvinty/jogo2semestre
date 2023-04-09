@@ -3,6 +3,8 @@
 #include <graphics.h>
 #include <locale.h>
 #include <time.h>
+#include <conio.h>
+
 int pg = 1;
 
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
@@ -144,16 +146,17 @@ TCamera *criarCamera(int _id,void*_imagem,TItem* _itens,int _qtdItens, TSaida *_
 	camera->qtdItens = _qtdItens;
 	camera->itens = _itens;
 	camera->saida = _saida;
+	return camera;
 }
 
-void mostrarCamera(const TCamera *camera) {
-	putimage(0,0,camera->imagem,COPY_PUT);
+void mostrarCamera(const TCamera camera) {
+	putimage(0,0,camera.imagem,COPY_PUT);
 }
 
 
-void mostrarItensCamera(const TCamera *camera) {
-	for(int i =0;i<camera->qtdItens;i++) {
-		TItem item = camera->itens[i]; 
+void mostrarItensCamera(const TCamera camera) {
+	for(int i =0;i<camera.qtdItens;i++) {
+		TItem item = camera.itens[i]; 
 		putimage(item.x, item.y, item.mascara, AND_PUT);
 		putimage(item.x, item.y, item.imagem, OR_PUT);
 	}
@@ -204,6 +207,26 @@ void colisaoMouseItens(TMouse *mouse,TCamera *camera) {
 	
 }
 
+void mudarDeCamera(int *camera_atual) {
+	int keyPressed;
+	keyPressed = getch();
+
+    if (keyPressed == 77) { // seta direcional para a direita
+        *camera_atual = *camera_atual + 1;
+        if(*camera_atual > 3) {
+        	*camera_atual = 0;
+		}
+        printf("%d,%d\n",keyPressed, *camera_atual);
+    } else if (keyPressed == 75) { // seta direcional para a esquerda
+        *camera_atual = *camera_atual - 1;
+        if(*camera_atual < 0) {
+        	*camera_atual = 3;
+		}
+        printf("%d,%d\n",keyPressed, *camera_atual);
+    }
+    
+}
+
 
 //TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
 //TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
@@ -216,8 +239,9 @@ void colisaoMouseItens(TMouse *mouse,TCamera *camera) {
 
 int main() {
 	
-	int count = 0;
-
+	int camera_atual = 0;
+	int qtdCam = 0;
+	
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(1024, 768,"meu jogo");
 	
@@ -234,29 +258,53 @@ int main() {
 	itens_final0[0] = *dinamite;
 	
 	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem));
-	
+	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
 	itens_camera0[0] = *dinamite; 
 	
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
 	TSaida *saida0 = criarSaida(0,"porta",200,200,final0);
 	
-	void *img_cam = load_image("quarto0.bmp",1024,768,0,0);
-	TCamera *camera0 = criarCamera(0,img_cam,itens_camera0,1,saida0);
+	void *img_cam0 = load_image("quarto0.bmp",1024,768,0,0);
+	void *img_cam1 = load_image("quarto1.bmp",1024,768,0,0);
+	void *img_cam2 = load_image("quarto2.bmp",1024,768,0,0);
+	void *img_cam3 = load_image("quarto3.bmp",1024,768,0,0);
+	
+	TCamera *camera0 = criarCamera(0,img_cam0,itens_camera0,1,saida0);
+	TCamera *camera1 = criarCamera(1,img_cam1,itens_camera1,1,saida0);
+	TCamera *camera2 = criarCamera(2,img_cam2,itens_camera0,1,saida0);
+	TCamera *camera3 = criarCamera(3,img_cam3,itens_camera0,1,saida0);
+ 	
+ 	TCamera *cameras = (TCamera*)malloc(sizeof(TCamera)*4);
+ 	
+ 	cameras[0] = *camera0;
+ 	cameras[1] = *camera1;
+ 	cameras[2] = *camera2;
+ 	cameras[3] = *camera3;
+ 	
+// 	for(int i = 0;i<4;i++){
+// 		qtdCam++;
+// 		(TCamera*)realloc(cameras,sizeof(TCamera)*qtdCam);
+// 		cameras[i] = cam
+//	}
+ 	
  	
  	while(true) {
- 		count++;
  		if(pg == 1) pg = 2; else pg = 1;
  		setvisualpage(pg);
- 		//mostra elementos
  		cleardevice();
-// 		printf("x:%d, y:%d \n",mousePos()->x,mousePos()->y);
- 		mostrarCamera(camera0);
-		mostrarItensCamera(camera0);	
-		colisaoMouseItens(mousePos(),camera0);
+ 		mudarDeCamera(&camera_atual);
+// 		printf("camera {id:%d: nome:%s, atual:%d\n",cameras[camera_atual]->id,cameras[camera_atual].imagem,camera_atual);
+ 		mostrarCamera(cameras[camera_atual]);
+		mostrarItensCamera(cameras[camera_atual]);
+			
+//		colisaoMouseItens(mousePos(),cameras[camera_atual]);
 		
  		setactivepage(pg);
 
 	}
+	
+	free(itens_camera0);
+ 	free(cameras);
  	
  	closegraph();
 	return 0;
