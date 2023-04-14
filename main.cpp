@@ -225,18 +225,8 @@ void mudarDeCamera(int *camera_atual,int *tecla) {
     
 }
 
-
-//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
-//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
-//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
-//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
-//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
-//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
-//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
-//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
-
-int main() {
-	int tecla = 0;
+int Comeca_Jogo(){
+    int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
 	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
@@ -250,10 +240,15 @@ int main() {
 	xIniJogo = (LarTela - LarJogo) / 2;
 	yIniJogo = AltJogo;
 	
+<<<<<<< HEAD
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(xIniJogo + LarJogo, yIniJogo + AltJogo,"meu jogo");
 	
+=======
+>>>>>>> 5fa5922984b900521f6739c548aaf497498d39c4
 	TMouse *mouse = mousePos();
+	
+	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
@@ -316,6 +311,61 @@ int main() {
 	
 	free(itens_camera0);
  	free(cameras);
+ 	
+	return 0;
+}
+
+int Menu(){
+	int X,Y;
+	
+	setbkcolor(BLACK);
+	
+	setcolor(WHITE);
+	settextstyle(DEFAULT_FONT,HORIZ_DIR,5);
+	outtextxy(200, 50, "Blend Scape");
+	
+	settextstyle(DEFAULT_FONT,HORIZ_DIR,3);
+	rectangle(200, 100,400,150);
+	outtextxy(220, 115, "Iniciar");
+	
+	rectangle(200, 200,400,250);
+	outtextxy(220, 215, "Sair");
+	
+	while(true){
+		X = mousex();
+		Y = mousey();
+		
+		if(X > 200 && X < 400 && Y > 100 && Y < 150){
+			if(ismouseclick(WM_LBUTTONDOWN)){
+				Comeca_Jogo();
+			}
+		}
+		if(X > 200 && X < 400 && Y > 200 && Y < 250){
+			if(ismouseclick(WM_LBUTTONDOWN)){
+				break;
+			}
+		}
+	}
+	
+	return 0;
+}
+
+//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
+//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
+//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
+//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
+//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
+//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
+//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
+//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
+
+int main() {
+	setlocale(LC_ALL,"Portuguese");
+	initwindow(1024, 768,"meu jogo");
+	
+	TMouse *mouse = mousePos();
+	
+	Menu();
  	
  	closegraph();
 	return 0;
