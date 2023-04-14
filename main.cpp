@@ -3,15 +3,29 @@
 #include <graphics.h>
 #include <locale.h>
 #include <time.h>
-void *load_image(char* image_addres,int x,int y,int largura,int altura) {
+#include <conio.h>
+
+int pg = 1;
+
+void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
-	
-	void*image;
-	image = malloc(aux);
-	readimagefile(image_addres,x,y,largura,altura);
-	getimage(0,0,largura,altura,image);
-	cleardevice();
-	return image;
+	void*img = malloc(aux);
+	readimagefile(endereco, x, y, largura, altura);
+	getimage(x, y, largura, altura, img);
+	return img;
+}
+
+void deleteImage(void *image){
+	free(image);
+}
+
+void DesenhaFundo(int Cor) {
+  int i;
+  for(i = 0; i < 16; i++) {
+    setcolor(i);
+    setfillstyle(1, i);
+    bar(i*40, 10, (i+1)*40, 490);
+  }  
 }
 
 struct TMouse{
@@ -21,10 +35,29 @@ struct TMouse{
 	int altura;
 };
 
+TMouse *mousePos(){
+	TMouse *mouse = (TMouse*)malloc(sizeof(TMouse));
+	if(!ismouseclick(WM_LBUTTONDOWN)){
+		mouse->x = mousex();
+		mouse->y = mousey();
+		clearmouseclick(WM_LBUTTONDOWN);
+	} 
+	if(ismouseclick(WM_LBUTTONDOWN)){
+		mouse->x = mousex();
+		mouse->y = mousey();
+		clearmouseclick(WM_LBUTTONDOWN);
+	}
+	
+	return mouse;
+}
+
+
+
 struct TItem{
 	int id;
-	char* nome;
-	char* image;
+	char *nome;
+	void *imagem;
+	void *mascara;
 	int x;
 	int y;
 	int largura;
@@ -32,12 +65,13 @@ struct TItem{
 };
 
 // CRUD ITENS
-TItem *criarItem(int id,char*nome,char*image,int x,int y, int largura, int altura) {
-	TItem *item = (TItem*)calloc(1,sizeof(TItem));
+TItem *criarItem(int id, char *nome,void *imagem, void *mascara, int x, int y, int largura, int altura) {
+	TItem *item = (TItem*)malloc(sizeof(TItem));
 	
 	item->id = id;
 	item->nome = nome;
-	item->image = image;
+	item->imagem = imagem;
+	item->mascara = mascara;
 	item->x = x;
 	item->y = y;
 	item->largura = largura;
@@ -46,11 +80,11 @@ TItem *criarItem(int id,char*nome,char*image,int x,int y, int largura, int altur
 	return item;
 }
 
-void *mostraItem(const TItem *item) {
-	void *image;
-	image = load_image(item->image,item->x,item->y,item->largura,item->altura);
-	return image;
-}
+//void *mostraItem(const TItem *item) {
+//	void *image;
+//	image = 
+//	return image;
+//}
 
 void apagaItem(TItem *item) {
 	item = NULL;
@@ -99,51 +133,47 @@ TSaida *criarSaida(int _id,char*_nome,int _x, int _y,TFinal *_finais) {
 struct TCamera {
 	int id;
 	int qtdItens;
-	char*imagem;
+	void *imagem;
 	TItem *itens;
 	TSaida *saida;
 };
 //CRUD CAMERA
 
-TCamera *criarCamera(int _id,char*_imagem,TItem* _itens,int _qtdItens, TSaida *_saida) {
+TCamera *criarCamera(int _id,void*_imagem,TItem* _itens,int _qtdItens, TSaida *_saida) {
 	TCamera *camera = (TCamera*) calloc(1,sizeof(TCamera));
-	char *imagem = _imagem;
+	camera->imagem = _imagem;
 	camera->id = _id;
 	camera->qtdItens = _qtdItens;
 	camera->itens = _itens;
 	camera->saida = _saida;
+	return camera;
 }
 
-void *mostrarCamera(const TCamera *camera) {
-	void *image;
-	image = load_image(camera->imagem,0,0,1024,768);
-	putimage(0,0,image,COPY_PUT);
+void mostrarCamera(const TCamera camera) {
+	putimage(0,0,camera.imagem,COPY_PUT);
+}
+
+
+void mostrarItensCamera(const TCamera camera) {
+	for(int i =0;i<camera.qtdItens;i++) {
+		TItem item = camera.itens[i]; 
+		putimage(item.x, item.y, item.mascara, AND_PUT);
+		putimage(item.x, item.y, item.imagem, OR_PUT);
+	}
+}
+
+void removeItensCamera(TCamera *camera) {
+	for(int i =0;i<camera->qtdItens;i++) {
+		TItem item = camera->itens[i]; 
+		free(item.imagem);
+		free(item.mascara);
+	}
 }
 
 bool clicou = false;
-TMouse *mousePos(){
-	
-	int x,y,button;
-	TMouse *mouse;
-	
-	if(!ismouseclick(WM_LBUTTONDOWN) && clicou == false){
-//		getmouseclick(WM_LBUTTONDOWN,x,y);
-//		printf("Botão esquerdo (%d,%d)\n",mousex(),mousey());	
-		mouse->x = mousex();
-		mouse->y = mousey();
-//		printf("Botão esquerdo (%d,%d,%i)\n",mouse.x,mouse.y,clicou);
-		clearmouseclick(WM_LBUTTONDOWN);
-	} 
-	if(ismouseclick(WM_LBUTTONDOWN)){
-		mouse->x = mousex();
-		mouse->y = mousey();
-//		printf("clicou (%d,%d,%i)\n",mouse.x,mouse.y,clicou);
-		clearmouseclick(WM_LBUTTONDOWN);
-	}
-	
-	return mouse;
-}
+//
 
+//
 bool verificaMouseClick() {
 	int x;
 	int y;
@@ -156,17 +186,17 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-int pg = 1;
 
-int colisaoMouseItens(TMouse *mouse,TCamera *camera) {
-	for(int i = 0;i<camera->qtdItens;i++) {
-		TItem item = camera->itens[i];
+
+void colisaoMouseItens(TMouse *mouse,TCamera camera) {
+	for(int i = 0;i<camera.qtdItens;i++) {
+		TItem item = camera.itens[i];
 		if (mouse->x < item.x + item.largura && 
 			mouse->x + mouse->largura > item.x && 
 			mouse->y < item.y + item.altura && 
 			mouse->y + mouse->altura > item.y) 
 		{
-			outtextxy(item.x,item.y,item.nome);
+			outtextxy(item.x+(item.largura/4), item.y+item.altura, item.nome);
 			delay(100);
     		
     		if(verificaMouseClick() == 1){
@@ -174,77 +204,119 @@ int colisaoMouseItens(TMouse *mouse,TCamera *camera) {
 			}	
 		}
 	}
-	return 0;
+	
+}
+
+void mudarDeCamera(int *camera_atual,int *tecla) {
+    if (*tecla == 77) { // seta direcional para a direita
+    	*tecla = 0;
+        *camera_atual = *camera_atual + 1;
+        if(*camera_atual > 3) {
+        	*camera_atual = 0;
+		}
+    } else if (*tecla == 75) { // seta direcional para a esquerda
+    	*tecla = 0;
+        *camera_atual = *camera_atual - 1;
+        if(*camera_atual < 0) {
+        	*camera_atual = 3;
+        	;
+		}
+    }
+    
 }
 
 
-//
-//void mostrarItens(TItem *itens, int qtd) {
-//	for(int i = 0;i< qtd;i++) {
-//		putimage(0,0,mostraItem(itens[i]),COPY_PUT);
-//	}
-//}
-
-TItem *dinamite = criarItem(0,"dinamite","dinamite.bmp",400,600,50,100);
-TItem *chave = criarItem(1,"chave","chave.bmp",400,600,50,100);
-TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp",400,600,50,100);
-TItem *rifle = criarItem(3,"rifle","rifle.bmp",400,600,50,100);
-TItem *bala = criarItem(4,"bala","bala.bmp",400,600,50,100);
-TItem *celular = criarItem(5,"celular","celular.bmp",400,600,50,100);
-TItem *machado = criarItem(6,"machado","machado.bmp",400,600,50,100);
-TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp",400,600,50,100);
-TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp",400,600,50,100);
-
-
-
-
+//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
+//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
+//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
+//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
+//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
+//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
+//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
+//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int main() {
-	setlocale(LC_ALL,"Portuguese");
-	initwindow(1280, 720,"meu jogo");
+	int tecla = 0;
+	int camera_atual = 0;
+	int qtdCam = 0;
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
 	
-	int fps = 60;
-    int frame_interval = 1000 / fps;
-    clock_t start_time, current_time;
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
+	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
+	
+	LarJogo = LarTela;
+	AltJogo = AltTela;
+	
+	xIniJogo = (LarTela - LarJogo) / 2;
+	yIniJogo = AltJogo;
+	
+	setlocale(LC_ALL,"Portuguese");
+	initwindow(xIniJogo + LarJogo, yIniJogo + AltJogo,"meu jogo");
+	
+	TMouse *mouse = mousePos();
+	
+	void*imagem = load_image("dinamite.bmp",100,100,200,200);
+	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
+	
+	TItem *dinamite = criarItem(0,"dinamite",imagem,mascara,200,200,100,100);
     
     //variaveis do jogo
     
-    TItem *itens_final0 = (TItem*)malloc(sizeof(TItem)*2);
-
-	itens_final0[0] = *chave;
-//	itens_final0[1] = NULL;
+    TItem *itens_final0 = (TItem*)malloc(sizeof(TItem));
+	itens_final0[0] = *dinamite;
 	
-	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem)*2);
-	itens_camera0[0] = *chave;
-	itens_camera0[1] = *gasolina; 
+	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem));
+//	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
+	itens_camera0[0] = *dinamite; 
 	
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
-
 	TSaida *saida0 = criarSaida(0,"porta",200,200,final0);
 	
-	TCamera *camera0 = criarCamera(0,"quarto0.bmp",itens_camera0,2,saida0);
-
+	void *img_cam0 = load_image("quarto0.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam1 = load_image("quarto1.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam2 = load_image("quarto2.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam3 = load_image("quarto3.bmp",LarJogo,AltJogo,0,0);
 	
-	
- 	printf("camera:%d,%s",camera0->id,camera0->itens[0].nome);
+	TCamera *camera0 = criarCamera(0,img_cam0,itens_camera0,1,saida0);
+	TCamera *camera1 = criarCamera(1,img_cam1,itens_camera0,1,saida0);
+	TCamera *camera2 = criarCamera(2,img_cam2,itens_camera0,1,saida0);
+	TCamera *camera3 = criarCamera(3,img_cam3,itens_camera0,1,saida0);
+ 	
+ 	TCamera *cameras = (TCamera*)malloc(sizeof(TCamera)*4);
+ 	
+ 	cameras[0] = *camera0;
+ 	cameras[1] = *camera1;
+ 	cameras[2] = *camera2;
+ 	cameras[3] = *camera3;
+ 	
+// 	for(int i = 0;i<4;i++){
+// 		qtdCam++;
+// 		(TCamera*)realloc(cameras,sizeof(TCamera)*qtdCam);
+// 		cameras[i] = cam
+//	}
+ 	
  	
  	while(true) {
  		if(pg == 1) pg = 2; else pg = 1;
  		setvisualpage(pg);
-		mousePos();
-//	
- 		mostrarCamera(camera0);
+ 		cleardevice();
+ 		mudarDeCamera(&camera_atual,&tecla);
+// 		printf("camera {id:%d: nome:%s, atual:%d\n",cameras[camera_atual]->id,cameras[camera_atual].imagem,camera_atual);
+ 		mostrarCamera(cameras[camera_atual]);
+		mostrarItensCamera(cameras[camera_atual]);
+			
+		colisaoMouseItens(mousePos(),cameras[camera_atual]);
 		
  		setactivepage(pg);
- 		
- 		start_time = clock();
-        while ((current_time = clock()) - start_time < frame_interval){
-        	delay(1);
-		}
-        	
-        cleardevice();
+ 		fflush(stdin);
+		if (kbhit())
+		    tecla = getch();
+		delay(50);
 	}
+	
+	free(itens_camera0);
+ 	free(cameras);
  	
- 	
+ 	closegraph();
 	return 0;
 }

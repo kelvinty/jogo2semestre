@@ -3,9 +3,15 @@ Order=0
 Focused=0
 [Editor_0]
 <<<<<<< HEAD
+<<<<<<< HEAD
 CursorCol=3
 CursorRow=237
-TopLine=222
+TopLine=1
+=======
+CursorCol=101
+CursorRow=285
+TopLine=265
+>>>>>>> f0182c1f370038697fe3eebfc3c858de160ec631
 =======
 CursorCol=21
 CursorRow=144
