@@ -1,6 +1,6 @@
 [Project]
-FileName=jogo1.dev
-Name=jogo1
+FileName=Entrega N1-D.dev
+Name=Project1
 Type=1
 Ver=2
 ObjFiles=
@@ -12,7 +12,6 @@ MakeIncludes=
 Compiler=
 CppCompiler=
 Linker=-lbgi_@@_-lgdi32_@@_-lcomdlg32_@@_-luuid_@@_-loleaut32_@@_-lole32_@@_
-_@@_
 IsCpp=1
 Icon=
 ExeOutput=
@@ -20,7 +19,7 @@ ObjectOutput=
 LogOutput=
 LogOutputEnabled=0
 OverrideOutput=0
-OverrideOutputName=jogo1.exe
+OverrideOutputName=Entrega N1-D.exe
 HostApplication=
 UseCustomMakefile=0
 CustomMakefile=
@@ -52,7 +51,7 @@ AutoIncBuildNr=0
 SyncProduct=1
 
 [Unit1]
-FileName=main.cpp
+FileName=atividadeN1D.cpp
 CompileCpp=1
 Folder=
 Compile=1
