@@ -1,12 +1,12 @@
 [Editors]
-Order=
+Order=0
 Focused=0
 [Editor_0]
 <<<<<<< HEAD
 <<<<<<< HEAD
-CursorCol=39
-CursorRow=236
-TopLine=223
+CursorCol=23
+CursorRow=42
+TopLine=1
 =======
 CursorCol=101
 CursorRow=285
