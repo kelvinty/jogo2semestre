@@ -208,44 +208,28 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 }
 
 void mudarDeCamera(int *camera_atual,int *tecla) {
-	if(GetKeyState(VK_LEFT)&0X80) {
-		*camera_atual -= 1;
-		if(*camera_atual < 0) {
-        	*camera_atual = 3;
-		}
-		delay(200);
-	}
-	if(GetKeyState(VK_RIGHT)&0X80) {
-		*camera_atual += 1;
-		if(*camera_atual > 3) {
+	
+    if (*tecla == 77) { // seta direcional para a direita
+    	*tecla = 0;
+        *camera_atual = *camera_atual + 1;
+        if(*camera_atual > 3) {
         	*camera_atual = 0;
 		}
-		delay(200);
-	} 
+    } else if (*tecla == 75) { // seta direcional para a esquerda
+    	*tecla = 0;
+        *camera_atual = *camera_atual - 1;
+        if(*camera_atual < 0) {
+        	*camera_atual = 3;
+        	;
+		}
+    }
+    
 }
 
-int gt1 = GetTickCount();
-
 int Comeca_Jogo(){
-	int gt2;
-	
     int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
-	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
-	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
-	
-
-	setlocale(LC_ALL,"Portuguese");
-	initwindow(xIniJogo + LarJogo, yIniJogo + AltJogo,"meu jogo");
 	
 	TMouse *mouse = mousePos();
 	
@@ -268,10 +252,10 @@ int Comeca_Jogo(){
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
 	TSaida *saida0 = criarSaida(0,"porta",200,200,final0);
 	
-	void *img_cam0 = load_image("quarto0.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam1 = load_image("quarto1.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam2 = load_image("quarto2.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam3 = load_image("quarto3.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam0 = load_image("quarto0.bmp",1024,768,0,0);
+	void *img_cam1 = load_image("quarto1.bmp",1024,768,0,0);
+	void *img_cam2 = load_image("quarto2.bmp",1024,768,0,0);
+	void *img_cam3 = load_image("quarto3.bmp",1024,768,0,0);
 	
 	TCamera *camera0 = criarCamera(0,img_cam0,itens_camera0,1,saida0);
 	TCamera *camera1 = criarCamera(1,img_cam1,itens_camera0,1,saida0);
@@ -293,36 +277,34 @@ int Comeca_Jogo(){
  	
  	
  	while(true) {
- 		gt2 = GetTickCount();
- 		
- 		if(gt2 - gt1 > 1000/60) {
- 			if(pg == 1) pg = 2; else pg = 1;
- 			setvisualpage(pg);
- 			cleardevice();
- 			mudarDeCamera(&camera_atual,&tecla);
-
- 			mostrarCamera(cameras[camera_atual]);
-			mostrarItensCamera(cameras[camera_atual]);
-			colisaoMouseItens(mousePos(),cameras[camera_atual]);
+ 		if(pg == 1) pg = 2; else pg = 1;
+ 		setvisualpage(pg);
+ 		cleardevice();
+ 		mudarDeCamera(&camera_atual,&tecla);
+// 		printf("camera {id:%d: nome:%s, atual:%d\n",cameras[camera_atual]->id,cameras[camera_atual].imagem,camera_atual);
+ 		mostrarCamera(cameras[camera_atual]);
+		mostrarItensCamera(cameras[camera_atual]);
 			
- 			setactivepage(pg);
-
-		}
- 		
+		colisaoMouseItens(mousePos(),cameras[camera_atual]);
 		
+ 		setactivepage(pg);
+ 		
+		if (kbhit())
+		    tecla = getch();
+		delay(50);
 	}
 	
 	free(itens_camera0);
  	free(cameras);
- 	closegraph();
+ 	
 	return 0;
 }
 
 int Menu(){
-	initwindow(1024, 768,"meu jogo");
 	int X,Y;
 	
 	setbkcolor(BLACK);
+	
 	setcolor(WHITE);
 	settextstyle(DEFAULT_FONT,HORIZ_DIR,5);
 	outtextxy(200, 50, "Blend Scape");
@@ -333,33 +315,22 @@ int Menu(){
 	
 	rectangle(200, 200,400,250);
 	outtextxy(220, 215, "Sair");
-	int gt2;
 	
 	while(true){
 		X = mousex();
 		Y = mousey();
-		gt2 = GetTickCount();
-		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
-			if(ismouseclick(WM_LBUTTONDOWN)){
 		
-				if(X > 200 && X < 400 && Y > 100 && Y < 150){
-					closegraph();
-					Comeca_Jogo();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
-	
+		if(X > 200 && X < 400 && Y > 100 && Y < 150){
 			if(ismouseclick(WM_LBUTTONDOWN)){
-				if(X > 200 && X < 400 && Y > 200 && Y < 250){
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
+				Comeca_Jogo();
+			}
+		}
+		if(X > 200 && X < 400 && Y > 200 && Y < 250){
+			if(ismouseclick(WM_LBUTTONDOWN)){
+				break;
 			}
 		}
 	}
-	closegraph();
 	
 	return 0;
 }
@@ -373,13 +344,14 @@ int Menu(){
 //TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
-
-
 int main() {
 	setlocale(LC_ALL,"Portuguese");
-	Menu();
+	initwindow(1024, 768,"meu jogo");
 	
 	TMouse *mouse = mousePos();
+	
+	Menu();
  	
+ 	closegraph();
 	return 0;
 }
