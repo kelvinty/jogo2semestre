@@ -7,12 +7,30 @@
 
 int pg = 1;
 
+void desaloca_vetor(){
+}
+
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
 	void*img = malloc(aux);
 	readimagefile(endereco, x, y, largura, altura);
 	getimage(x, y, largura, altura, img);
 	return img;
+}
+
+void animacao_texto(char *texto,int pos_x,int pos_y) {
+   	char *str = NULL;
+   	int n = sizeof(texto) / sizeof(texto[0]);
+   // Loop principal da animação
+   	for (int i = 0; i < n; i++) {
+   		(char*)realloc(str,sizeof(char)*i);
+		str[i] = texto[i];
+		printf("%s",str);
+//    	outtextxy(pos_x, pos_y, &texto[i]);
+//    	pos_x += textwidth(&texto[i]);
+	}
+
+
 }
 
 void deleteImage(void *image){
@@ -91,6 +109,8 @@ void apagaItem(TItem *item) {
 }
 
 struct TInventario {
+	int maxItens;
+	int qtdItens;
 	TItem *itens;
 	int x;
 	int y;
@@ -186,7 +206,17 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-
+void pegarItem(TItem *_item, TCamera *camera){
+	for(int i = 0;i<camera->qtdItens;i++){
+		TItem item = camera->itens[i];
+		if(item.id == _item->id){
+			printf("pegou o item %d na camera:%d\n",item.id,camera->id);
+		}
+	}
+//	*inventario.qtdItens = *inventario.qtdItens + 1;
+//	(TInventario*)realloc(inventario,sizeof(TInventario)*inventario.qtdItens);
+//	*inventario.itens[qtdItens] = *item;
+}
 
 void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 	for(int i = 0;i<camera.qtdItens;i++) {
@@ -196,11 +226,13 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 			mouse->y < item.y + item.altura && 
 			mouse->y + mouse->altura > item.y) 
 		{
-			outtextxy(item.x+(item.largura/4), item.y+item.altura, item.nome);
-			delay(100);
+			int largura_texto = textwidth(item.nome);
+			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
+			
+			delay(50);
     		
     		if(verificaMouseClick() == 1){
-    			printf("clicou no item: %s\n",item.nome);	
+    			pegarItem(&item,&camera);	
 			}	
 		}
 	}
@@ -226,6 +258,16 @@ void mudarDeCamera(int *camera_atual,int *tecla) {
 
 int gt1 = GetTickCount();
 
+//TItem *chave = criarItem(1,"chave","chave.bmp","chave_pb.bmp",200,200,100,100);
+//TItem *gasolina = criarItem(2,"gasolina","gasolina.bmp","gasolina_pb.bmp",400,600,50,100);
+//TItem *rifle = criarItem(3,"rifle","rifle.bmp","rifle_pb.bmp",400,600,50,100);
+//TItem *bala = criarItem(4,"bala","bala.bmp","bala_pb.bmp",400,600,50,100);
+//TItem *celular = criarItem(5,"celular","celular.bmp","celular_pb.bmp",400,600,50,100);
+//TItem *machado = criarItem(6,"machado","machado.bmp","machado_pg.bmp",400,600,50,100);
+//TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
+//TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
+
+
 int Comeca_Jogo(){
 	int gt2;
 	
@@ -248,22 +290,21 @@ int Comeca_Jogo(){
 	initwindow(xIniJogo + LarJogo, yIniJogo + AltJogo,"meu jogo");
 	
 	TMouse *mouse = mousePos();
-	
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,2);
-	
+
+//	TIventario *inventario; 
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
 	
-	TItem *dinamite = criarItem(0,"dinamite",imagem,mascara,200,200,100,100);
+//	TItem *dinamite = criarItem(0,"dinamite\0",imagem,mascara,200,200,100,100);
     
     //variaveis do jogo
     
     TItem *itens_final0 = (TItem*)malloc(sizeof(TItem));
-	itens_final0[0] = *dinamite;
+//	itens_final0[0] = *dinamite;
 	
 	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem));
 //	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
-	itens_camera0[0] = *dinamite; 
+//	itens_camera0[0] = *dinamite; 
 	
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
 	TSaida *saida0 = criarSaida(0,"porta",200,200,final0);
@@ -308,7 +349,7 @@ int Comeca_Jogo(){
  			setactivepage(pg);
 
 		}
- 		
+ 		animacao_texto("teste de lorem",100,100);
 		
 	}
 	
