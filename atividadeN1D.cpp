@@ -21,13 +21,25 @@ struct TStars {
 void mostraEstrelas(TStars *stars,int qtd) {
 	for(int i = 0;i < qtd;i++){
 		TStars star = stars[i];
+		if(star.grandeza == 0) {
+			putpixel(star.starX,star.starY, star.starC);
+		} 
 		if(star.grandeza == 1) {
-			putpixel(star.starX, star.starY, star.starC);
-		} else {
-			for(int k=0; k<2; k++) {
-				for (int j=0; j<2; j++){
-					putpixel(stars[i].starX+k,stars[i].starY+j, stars[i].starC);
+			for(int k=1; k<=3; k++) {
+				for (int j=1; j<=3; j++){
+					if(k%2 == 0 || j%2 == 0) {
+						putpixel(star.starX+k,star.starY+j, star.starC);
+					}
 				}
+			}
+		} 
+		if(star.grandeza == 2) {
+			for(int k=1; k<=5; k++) {
+				for (int j=1; j<=5; j++){
+					if(k%3 == 0 || j%3 == 0) {
+						putpixel(stars[i].starX+k,stars[i].starY+j, stars[i].starC);
+					}
+				}	
 			}
 			
 		}
@@ -121,8 +133,6 @@ void saltoTemporal(TStars *stars,int qtd, int centro_x, int centro_y) {
 		for(int K = 0;K < 10;K++) {
 			putpixel(stars[i].starX - passo_x * 10,stars[i].starY - passo_y * 10,stars[i].starC);
 		}
-		
-			
 	}
 }
 
@@ -135,7 +145,7 @@ void viagemEstelar(TStars *stars, int qtd, int tela_h, int tela_v) {
 		stars[i].g = rand()%255;
 		stars[i].b = rand()%255;
 		stars[i].starC = RGB(stars[i].r, stars[i].g, stars[i].b);
-		stars[i].grandeza = (rand()%2) + 1;
+		stars[i].grandeza = (rand()%3);
 	}
 }
 
@@ -145,34 +155,9 @@ void hiperEspaco(TStars *stars, int qtd, int centro_x, int centro_y) {
 		float passo_x = (centro_x - stars[i].starX) / distancia;
    		float passo_y = (centro_y - stars[i].starY) / distancia;
    		printf("x:%lf, y:%lf, distancia:%lf\n",passo_x,passo_y,distancia);
-		
-//		for(int k = 0;k < 100;k++) {
-//			printf("x:%lf,y:%lf\n",passo_x,passo_y);
-//			line(stars[i].starX, stars[i].starY, stars[i].starX + passo_x * 10, stars[i].starY + passo_y * 10);
-////			putpixel(stars[i].starX + passo_x * 5,stars[i].starY + passo_y * 5,stars[i].starC);
-//		}
 		if(distancia > 0) {
 			line(stars[i].starX, stars[i].starY, centro_x, centro_y);
-			delay(2);
-//			float ini_distancia = distancia;
-//			int ini_x = stars[i].starX;
-//			int ini_y = stars[i].starY;
-//			float ini_passo_x = (centro_x - stars[i].starX) / ini_distancia;
-//			float ini_passo_y = (centro_y - stars[i].starY) / ini_distancia;
-			
-//			while(ini_distancia > 0){
-			
-//				line(ini_x, ini_y, stars[i].starX, stars[i].starY);
-//				stars[i].starX += passo_x * 5; 
-//				stars[i].starY += passo_y * 5;
-//				ini_distancia = sqrt(pow(centro_x - stars[i].starX, 2) + pow(centro_y - stars[i].starY, 2)); 
-//				ini_passo_x = (centro_x - stars[i].starX) / ini_distancia;
-//				ini_passo_y = (centro_y - stars[i].starY) / ini_distancia;
-//			} 
-		}
-		
-		
-			
+		}		
 	}
 }
 
@@ -195,6 +180,7 @@ int main() {
 	tela_v = round(tela_h * 0.66);
 	
 	tela_tot = tela_h * tela_v;
+
 	qtdStars = round(tela_tot*0.008);
 	
 	TStars *stars = (TStars*) malloc(sizeof(TStars)* qtdStars);
@@ -211,7 +197,7 @@ int main() {
 		stars[i].g = rand()%255;
 		stars[i].b = rand()%255;
 		stars[i].starC = RGB(stars[i].r, stars[i].g, stars[i].b);
-		stars[i].grandeza = (rand()%2) + 1;
+		stars[i].grandeza = (rand()%3);
 		stars[i].apagou = false;
 	}
 	
@@ -224,18 +210,15 @@ int main() {
 		
  		setvisualpage(pg);
  		cleardevice();
-		
+ 		
 		mostraEstrelas(stars,qtdStars);
+		
 		piscaEstrela(stars,qtdStars);
 		setfillstyle(1, RGB(255,255,255));
     	fillpoly(num_points, points);
 		
 		setactivepage(pg);
-//		piscaEstrela(stars,qtdStars);
-//		if (clock() - last_update_time > CLOCKS_PER_SEC / 30) {
-//			
-//			last_update_time = clock();
-//		}
+
 		if (kbhit()){
             tecla = getch(); // captura o código de tecla especial
           	printf("%d",tecla);
@@ -279,3 +262,4 @@ int main() {
 	
 	return 0;
 }
+
