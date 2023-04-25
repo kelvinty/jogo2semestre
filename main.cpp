@@ -6,6 +6,7 @@
 #include <conio.h>
 
 int pg = 1;
+int last_time = clock();
 
 void desaloca_vetor(){
 }
@@ -18,32 +19,36 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	return img;
 }
 
-void animacao_texto(char *texto,int pos_x,int pos_y) {
-	int count = 0;
-//   	char *str;
-   	int n = sizeof(texto) / sizeof(texto[0]);
+void animacao_texto(char *texto,int qtd,int pos_x,int pos_y) {
+
+  	char *str = (char*)malloc(sizeof(char)*qtd);
+	int tempo = clock();
    // Loop principal da animação
-   	for (int i = 0; i < n; i++) {
-//		str[i] = texto[i];
-		printf("%s ,%d\n",texto,n);
+   	for (int i = 0; i <= qtd-1;) {
+   		tempo = clock();
+//   		setvisualpage(pg);
+   		if(pg == 1) pg = 2; else pg = 1;
+ 		setvisualpage(pg);
+   		if(tempo % 100 == 0 ) {
+   			cleardevice();
+//	   		(char*)realloc(str,sizeof(char)*i);
+			str[i] = texto[i];
+			str[i+1] = '\0';
+			printf("%s,\n",str);
+			outtextxy(pos_x,pos_y,str);
+			i++;
+			
+		}
+		setactivepage(pg);
 //    	outtextxy(pos_x, pos_y, &texto[i]);
 //    	pos_x += textwidth(&texto[i]);
 	}
-
+	free(str);
 
 }
 
 void deleteImage(void *image){
 	free(image);
-}
-
-void DesenhaFundo(int Cor) {
-  int i;
-  for(i = 0; i < 16; i++) {
-    setcolor(i);
-    setfillstyle(1, i);
-    bar(i*40, 10, (i+1)*40, 490);
-  }  
 }
 
 struct TMouse{
@@ -228,8 +233,8 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 		{
 			int largura_texto = textwidth(item.nome);
 			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
-			
-			delay(50);
+//			animacao_texto(item.nome,8,item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura);
+//			delay(50);
     		
     		if(verificaMouseClick() == 1){
     			pegarItem(&item,&camera);	
@@ -295,7 +300,7 @@ int Comeca_Jogo(){
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
 	
-	TItem *dinamite = criarItem(0,"dinamite\0",imagem,mascara,200,200,100,100);
+	TItem *dinamite = criarItem(0,"dinamite",imagem,mascara,200,200,100,100);
     
     //variaveis do jogo
     
@@ -346,10 +351,11 @@ int Comeca_Jogo(){
 			mostrarItensCamera(cameras[camera_atual]);
 			colisaoMouseItens(mousePos(),cameras[camera_atual]);
 			
+			animacao_texto("Teste de animação de texto",26,300,400);
  			setactivepage(pg);
 
 		}
- 		animacao_texto("teste de lorem",100,100);
+ 		
 		
 	}
 	
