@@ -1,7 +1,8 @@
 [Editors]
-Order=0
+Order=
 Focused=0
 [Editor_0]
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 CursorCol=22
@@ -9,9 +10,20 @@ CursorRow=35
 TopLine=20
 =======
 <<<<<<< HEAD
+CursorCol=23
+CursorRow=42
+TopLine=1
+=======
+CursorCol=45
+CursorRow=24
+TopLine=10
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
+=======
+<<<<<<< HEAD
 CursorCol=39
 CursorRow=236
 TopLine=223
+>>>>>>> 1440ff7fdb427cc884c7c37dcefde8542213ca2c
 =======
 CursorCol=101
 CursorRow=285

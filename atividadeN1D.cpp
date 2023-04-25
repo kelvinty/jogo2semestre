@@ -191,8 +191,12 @@ int main() {
 	
 	tela_v = round(tela_h * 0.66);
 	tela_tot = tela_h * tela_v;
+<<<<<<< HEAD
 	
 	qtdPixels = round(5000);
+=======
+
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 	qtdStars = round(tela_tot*0.008);
 	
 	TStars *stars = (TStars*)malloc(sizeof(TStars)* qtdStars);
@@ -233,7 +237,10 @@ int main() {
  		setvisualpage(pg);
  		cleardevice();
  		
+<<<<<<< HEAD
 // 		mostraPixels(pixels,qtdPixels);
+=======
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 		mostraEstrelas(stars,qtdStars);
 		
 		piscaEstrela(stars,qtdStars);
@@ -285,3 +292,4 @@ int main() {
 	
 	return 0;
 }
+

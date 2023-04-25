@@ -19,6 +19,7 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	return img;
 }
 
+<<<<<<< HEAD
 void animacao_texto(char *texto,int qtd,int pos_x,int pos_y) {
 
   	char *str = (char*)malloc(sizeof(char)*qtd);
@@ -45,7 +46,22 @@ void animacao_texto(char *texto,int qtd,int pos_x,int pos_y) {
 	}
 	free(str);
 
+=======
+
+void animacao_texto(char *texto,int pos_x,int pos_y) {
+   	char *str = NULL;
+   	int n = sizeof(texto) / sizeof(texto[0]);
+   // Loop principal da animação
+   	for (int i = 0; i < n; i++) {
+   		(char*)realloc(str,sizeof(char)*i);
+		str[i] = texto[i];
+		printf("%s",str);
+//    	outtextxy(pos_x, pos_y, &texto[i]);
+//    	pos_x += textwidth(&texto[i]);
+	}
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 }
+
 
 void deleteImage(void *image){
 	free(image);
@@ -290,9 +306,9 @@ int Comeca_Jogo(){
 	xIniJogo = (LarTela - LarJogo) / 2;
 	yIniJogo = AltJogo;
 	
-
 	setlocale(LC_ALL,"Portuguese");
-	initwindow(xIniJogo + LarJogo, yIniJogo + AltJogo,"meu jogo");
+	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,2);
+	
 	
 	TMouse *mouse = mousePos();
 
@@ -308,7 +324,7 @@ int Comeca_Jogo(){
 	itens_final0[0] = *dinamite;
 	
 	TItem *itens_camera0 = (TItem*)malloc(sizeof(TItem));
-//	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
+	TItem *itens_camera1 = (TItem*)malloc(sizeof(TItem));
 	itens_camera0[0] = *dinamite; 
 	
 	TFinal *final0 = criarFinal(0,itens_final0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
@@ -353,21 +369,25 @@ int Comeca_Jogo(){
 			
 			animacao_texto("Teste de animação de texto",26,300,400);
  			setactivepage(pg);
-
 		}
+<<<<<<< HEAD
  		
+=======
+
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 		
 	}
 	
 	free(itens_camera0);
  	free(cameras);
- 	closegraph();
 	return 0;
 }
 
 int Menu(){
-	initwindow(1024, 768,"meu jogo");
+
 	int X,Y;
+	
+	
 	
 	setbkcolor(BLACK);
 	setcolor(WHITE);
@@ -391,8 +411,7 @@ int Menu(){
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
 				if(X > 200 && X < 400 && Y > 100 && Y < 150){
-					closegraph();
-					Comeca_Jogo();
+					return Comeca_Jogo();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
@@ -406,7 +425,7 @@ int Menu(){
 			}
 		}
 	}
-	closegraph();
+	
 	
 	return 0;
 }
@@ -420,13 +439,23 @@ int Menu(){
 //TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
-
-
 int main() {
-	setlocale(LC_ALL,"Portuguese");
-	Menu();
 	
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
+	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
+	
+	LarJogo = LarTela;
+	AltJogo = AltTela;
+	
+	xIniJogo = (LarTela - LarJogo) / 2;
+	yIniJogo = AltJogo;
+	
+	setlocale(LC_ALL,"Portuguese");
+	initwindow(LarTela, AltTela,"meu jogo");
+	Menu();
 	TMouse *mouse = mousePos();
- 	
+ 	closegraph();
 	return 0;
 }
