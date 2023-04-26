@@ -18,6 +18,14 @@ struct TStars {
 	bool apagou;
 };
 
+struct TPixels {
+	int pixelX, pixelY; 
+	int r;
+	int g;
+	int b;
+	int pixelC;
+};
+
 void mostraEstrelas(TStars *stars,int qtd) {
 	for(int i = 0;i < qtd;i++){
 		TStars star = stars[i];
@@ -47,6 +55,13 @@ void mostraEstrelas(TStars *stars,int qtd) {
 	}
 }
 
+void mostraPixels(TPixels *pixels,int qtd){
+	for(int i = 0;i < qtd;i++){
+		TPixels pixel = pixels[i];
+		putpixel(pixel.pixelX,pixel.pixelY, pixel.pixelC);
+	}
+}
+
 void piscaEstrela(TStars *stars, int qtd) {
 	for(int i = 0;i < qtd;i++){
 		if(stars[i].grandeza == 1) {
@@ -55,11 +70,9 @@ void piscaEstrela(TStars *stars, int qtd) {
 					stars[i].apagou = true;
 					stars[i].starC = RGB(0, 0, 0);
 				} else {
-					
-					stars[i].r = stars[i].r - 1;
-					stars[i].g = stars[i].g - 1;
-					stars[i].b = stars[i].b - 1;
-
+					stars[i].r = round(stars[i].r - 1);
+					stars[i].g = round(stars[i].g - 1);
+					stars[i].b = round(stars[i].b - 1);
 					stars[i].starC = RGB(stars[i].r, stars[i].g, stars[i].b);
 				}
 //				putpixel(star.starX, star.starY, star.starC);
@@ -68,10 +81,9 @@ void piscaEstrela(TStars *stars, int qtd) {
 					stars[i].apagou = false;
 //					stars[i].starC = RGB(255, 255, 255);
 				} else {
-					stars[i].r = stars[i].r + 1;
-					stars[i].g = stars[i].g + 1;
-					stars[i].b = stars[i].b + 1;
-				
+					stars[i].r = round(stars[i].r + 1);
+					stars[i].g = round(stars[i].g + 1);
+					stars[i].b = round(stars[i].b + 1);
 					stars[i].starC = RGB(stars[i].r, stars[i].g, stars[i].b);
 				}
 				
@@ -165,7 +177,7 @@ int main() {
 	int tecla = 0;
 	int pg = 1;
 	int tela_h,tela_v;
-	int tela_tot, qtdStars;
+	int tela_tot, qtdStars,qtdPixels;
 	int pos_x,pos_y;
 	int vel;
 	
@@ -178,17 +190,31 @@ int main() {
 	scanf("%d",&tela_h);
 	
 	tela_v = round(tela_h * 0.66);
-	
 	tela_tot = tela_h * tela_v;
+<<<<<<< HEAD
+	
+	qtdPixels = round(5000);
+=======
 
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 	qtdStars = round(tela_tot*0.008);
 	
-	TStars *stars = (TStars*) malloc(sizeof(TStars)* qtdStars);
+	TStars *stars = (TStars*)malloc(sizeof(TStars)* qtdStars);
+	TPixels *pixels = (TPixels*)malloc(sizeof(TPixels)*qtdPixels);
 	
 	pos_x = tela_h/2;
 	pos_y = tela_v/2;
 	
 	initwindow(tela_h,tela_v,"Desafio Viagem estelar");
+	
+	for(int i = 0;i < qtdPixels;i++) {
+		pixels[i].pixelX = rand()%tela_h;
+		pixels[i].pixelY = rand()%tela_v;
+		pixels[i].r = rand()%255;
+		pixels[i].g = rand()%255;
+		pixels[i].b = rand()%255;
+		pixels[i].pixelC = RGB(pixels[i].r, pixels[i].g, pixels[i].b);
+	}
 	
 	for(int i = 0;i < qtdStars;i++) {
 		stars[i].starX = rand()%tela_h;
@@ -211,6 +237,10 @@ int main() {
  		setvisualpage(pg);
  		cleardevice();
  		
+<<<<<<< HEAD
+// 		mostraPixels(pixels,qtdPixels);
+=======
+>>>>>>> decbe62eceb66b511eced79411e15013e0acf9aa
 		mostraEstrelas(stars,qtdStars);
 		
 		piscaEstrela(stars,qtdStars);

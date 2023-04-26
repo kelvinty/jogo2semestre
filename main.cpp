@@ -4,8 +4,11 @@
 #include <locale.h>
 #include <time.h>
 #include <conio.h>
+#include <math.h>
+#include <string.h>
 
 int pg = 1;
+int last_time = clock();
 
 void desaloca_vetor(){
 }
@@ -18,32 +21,60 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	return img;
 }
 
+void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
+	
+	double larguraString = textwidth(texto);
+	int alturaString = textheight(texto);
+	
+	int qtdLinhas = ceil(larguraString/quebra_linha);
+	int qtdLetras = quebra_linha/textwidth("b");
+	int qtdLetrasTexto = larguraString/textwidth("b");
+	printf("qtd caracters:%d", qtdLetrasTexto);
+	char **linha = (char**)malloc(sizeof(char*)*qtdLinhas);
+	char *str = (char*)malloc(sizeof(char)*qtdLinhas);
+  	char *newStr = (char*)malloc(sizeof(char)*qtdLetras);
+  	
+  	for(int k = 0;k < qtdLinhas;k++) {
+  		for(int j = 0; j < qtdLetras;){
+  			str[j] = texto[j+ (k*qtdLetras)];
+			str[j+1] = '\0';	
+			j++;
+		}
+		printf("%s\n\n", str);
+		linha[k] = (char*)malloc(sizeof(char)*(qtdLetras+1));
+		strcpy(linha[k], str);
 
-void animacao_texto(char *texto,int pos_x,int pos_y) {
-   	char *str = NULL;
-   	int n = sizeof(texto) / sizeof(texto[0]);
-   // Loop principal da animação
-   	for (int i = 0; i < n; i++) {
-   		(char*)realloc(str,sizeof(char)*i);
-		str[i] = texto[i];
-		printf("%s",str);
-//    	outtextxy(pos_x, pos_y, &texto[i]);
-//    	pos_x += textwidth(&texto[i]);
 	}
-}
 
+   	for (int i = 0; i < qtdLinhas;i++) {
+   		if(pg == 1) pg = 2; else pg = 1;
+	 	setvisualpage(pg);
+   		cleardevice();
+   		for(int l = 0; l < qtdLetras;){
+   			if(pg == 1) pg = 2; else pg = 1;
+//	 		setvisualpage(pg);
+	   		
+			newStr[l] = linha[i][l];
+			newStr[l+1] = '\0';
+			outtextxy(pos_x ,pos_y + (i*alturaString),newStr);
+			delay(50);
+			setactivepage(pg);
+			l++;
+		}
+		 // itera pelo array de linhas (substitua "3" pelo número de linhas no seu caso)
+        outtextxy(pos_x, pos_y + (i*alturaString), linha[i]); // exibe a linha atual
+    	setactivepage(pg);
+		printf("\n");
+	}
+	
+	free(str);
+	free(linha);
+	free(newStr);
+
+}
 
 void deleteImage(void *image){
 	free(image);
-}
-
-void DesenhaFundo(int Cor) {
-  int i;
-  for(i = 0; i < 16; i++) {
-    setcolor(i);
-    setfillstyle(1, i);
-    bar(i*40, 10, (i+1)*40, 490);
-  }  
 }
 
 struct TMouse{
@@ -228,8 +259,8 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 		{
 			int largura_texto = textwidth(item.nome);
 			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
-			
-			delay(50);
+//			animacao_texto(item.nome,8,item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura);
+//			delay(50);
     		
     		if(verificaMouseClick() == 1){
     			pegarItem(&item,&camera);	
@@ -267,6 +298,18 @@ int gt1 = GetTickCount();
 //TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
+int Final() {
+	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
+	int gt2;
+	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama. Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
+	
+	while(true) {
+ 		gt2 = GetTickCount();
+		if(gt2 - gt1 > 1000/60) {	
+			animacao_texto(texto,1000,2000,50,50);
+		}
+	}
+}
 
 int Comeca_Jogo(){
 	int gt2;
@@ -332,7 +375,6 @@ int Comeca_Jogo(){
 // 		cameras[i] = cam
 //	}
  	
- 	
  	while(true) {
  		gt2 = GetTickCount();
  		
@@ -346,9 +388,9 @@ int Comeca_Jogo(){
 			mostrarItensCamera(cameras[camera_atual]);
 			colisaoMouseItens(mousePos(),cameras[camera_atual]);
 			
+			animacao_texto("Teste de animação de texto",750,26,300,400);
  			setactivepage(pg);
 		}
-
 		
 	}
 	
@@ -360,8 +402,6 @@ int Comeca_Jogo(){
 int Menu(){
 
 	int X,Y;
-	
-	
 	
 	setbkcolor(BLACK);
 	setcolor(WHITE);
@@ -393,13 +433,13 @@ int Menu(){
 	
 			if(ismouseclick(WM_LBUTTONDOWN)){
 				if(X > 200 && X < 400 && Y > 200 && Y < 250){
+					return Final();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
 			}
 		}
 	}
-	
 	
 	return 0;
 }
