@@ -5,6 +5,7 @@
 #include <time.h>
 #include <conio.h>
 #include <math.h>
+#include <string.h>
 
 int pg = 1;
 int last_time = clock();
@@ -26,10 +27,11 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 	int alturaString = textheight(texto);
 	
 	int qtdLinhas = ceil(larguraString/quebra_linha);
-	int qtdLetras = quebra_linha/textwidth("H");
-	
+	int qtdLetras = quebra_linha/textwidth("b");
+	int qtdLetrasTexto = larguraString/textwidth("b");
+	printf("qtd caracters:%d", qtdLetrasTexto);
 	char **linha = (char**)malloc(sizeof(char*)*qtdLinhas);
-	char *str = (char*)malloc(sizeof(char)*qtdLetras);
+	char *str = (char*)malloc(sizeof(char)*qtdLinhas);
   	char *newStr = (char*)malloc(sizeof(char)*qtdLetras);
   	
   	for(int k = 0;k < qtdLinhas;k++) {
@@ -38,31 +40,37 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 			str[j+1] = '\0';	
 			j++;
 		}
-  		linha[k] = str;
+		printf("%s\n\n", str);
+		linha[k] = (char*)malloc(sizeof(char)*(qtdLetras+1));
+		strcpy(linha[k], str);
+
 	}
 
    	for (int i = 0; i < qtdLinhas;i++) {
-//   		printf("%s", linha[i]);
+   		if(pg == 1) pg = 2; else pg = 1;
+	 	setvisualpage(pg);
+   		cleardevice();
    		for(int l = 0; l < qtdLetras;){
    			if(pg == 1) pg = 2; else pg = 1;
-	 		setvisualpage(pg);
-	   		cleardevice();
+//	 		setvisualpage(pg);
 	   		
 			newStr[l] = linha[i][l];
 			newStr[l+1] = '\0';
 			outtextxy(pos_x ,pos_y + (i*alturaString),newStr);
 			delay(50);
-			if(l >= (qtdLetras-1)) {
-				printf("%d, %d \n", i, l);
-			}
 			setactivepage(pg);
 			l++;
-		}	
+		}
+		 // itera pelo array de linhas (substitua "3" pelo número de linhas no seu caso)
+        outtextxy(pos_x, pos_y + (i*alturaString), linha[i]); // exibe a linha atual
+    	setactivepage(pg);
 		printf("\n");
 	}
 	
 	free(str);
-	
+	free(linha);
+	free(newStr);
+
 }
 
 void deleteImage(void *image){
@@ -293,8 +301,7 @@ int gt1 = GetTickCount();
 int Final() {
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
 	int gt2;
-	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama.";
-	char *texto2 = "Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
+	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama. Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
 	
 	while(true) {
  		gt2 = GetTickCount();
