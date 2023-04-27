@@ -10,9 +10,6 @@
 int pg = 1;
 int last_time = clock();
 
-void desaloca_vetor(){
-}
-
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
 	void*img = malloc(aux);
@@ -33,7 +30,6 @@ int strlen(char *str)
 }
 
 void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
-	
 	double larguraString = textwidth(texto);
 	int alturaString = textheight(texto);
 	int qtdLetrasTexto = strlen(texto);
@@ -141,23 +137,32 @@ TItem *criarItem(int id, char *nome,void *imagem, void *mascara, int x, int y, i
 	return item;
 }
 
-//void *mostraItem(const TItem *item) {
-//	void *image;
-//	image = 
-//	return image;
-//}
-
-void apagaItem(TItem *item) {
-	item = NULL;
+void apagaItem(TItem **item_ref) {
+	TItem *item = *item_ref;
+	free(item);
+	*item_ref = NULL;
 }
 
 struct TInventario {
 	int maxItens;
 	int qtdItens;
-	TItem *itens;
+	TItem **itens;
 	int x;
 	int y;
 };
+
+TInventario *criar_inventario(int maxItens, int qtdItens, int x, int y) {
+	TInventario *inventario = (TInventario*)calloc(1,sizeof(TInventario));
+	
+	inventario->maxItens = maxItens;
+	inventario->qtdItens = qtdItens;
+	inventario->x = x;
+	inventario->y = y;
+	inventario->itens = NULL;
+	
+	return inventario;
+}
+
 
 struct TFinal {
 	int id;
@@ -249,7 +254,7 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-void pegarItem(TItem *_item, TCamera *camera, TInventario *inventario){
+void pegarItem(TItem *_item, TCamera *camera){
 	FILE *Arq = fopen("inventario.txt","a");
 	
 	for(int i = 0;i<camera->qtdItens;i++){
@@ -268,7 +273,7 @@ void pegarItem(TItem *_item, TCamera *camera, TInventario *inventario){
 //	*inventario.itens[qtdItens] = *item;
 }
 
-void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario inventario) {
+void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 	for(int i = 0;i<camera.qtdItens;i++) {
 		TItem item = camera.itens[i];
 		if (mouse->x < item.x + item.largura && 
@@ -283,7 +288,7 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario inventario) {
     		
     		if(verificaMouseClick() == 1){
     			printf("clicou");
-    			pegarItem(&item,&camera,&inventario);	
+    			pegarItem(&item,&camera);	
 			}	
 		}
 	}
@@ -319,9 +324,9 @@ int gt1 = GetTickCount();
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int Final() {
-	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
+	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	int LarTela;
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 250;
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
 	int gt2;
 	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama. Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
 	
@@ -356,8 +361,8 @@ int Comeca_Jogo(){
 	
 	TMouse *mouse = mousePos();
 
-	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
-	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
+//	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
+//	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
@@ -410,7 +415,7 @@ int Comeca_Jogo(){
 
  			mostrarCamera(cameras[camera_atual]);
 			mostrarItensCamera(cameras[camera_atual]);
-			colisaoMouseItens(mousePos(),cameras[camera_atual],*inventario);
+			colisaoMouseItens(mousePos(),cameras[camera_atual]);
 			
  			setactivepage(pg);
 		}
