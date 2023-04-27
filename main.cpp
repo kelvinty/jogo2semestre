@@ -21,15 +21,30 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	return img;
 }
 
+int strlen(char *str)
+{
+    int total=0;
+
+    while( str[total] != '\0'){
+    	total++;
+	}
+        
+    return total;
+}
+
 void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 	
 	double larguraString = textwidth(texto);
 	int alturaString = textheight(texto);
+	int qtdLetrasTexto = strlen(texto);
+	
+	int larguraLetras = larguraString/qtdLetrasTexto;
+	
+	int larguraTexto = qtdLetrasTexto*larguraLetras;
 	
 	int qtdLinhas = ceil(larguraString/quebra_linha);
-	int qtdLetras = quebra_linha/textwidth("b");
-	int qtdLetrasTexto = larguraString/textwidth("b");
-	printf("qtd caracters:%d", qtdLetrasTexto);
+	int qtdLetras = quebra_linha/larguraLetras;
+	
 	char **linha = (char**)malloc(sizeof(char*)*qtdLinhas);
 	char *str = (char*)malloc(sizeof(char)*qtdLinhas);
   	char *newStr = (char*)malloc(sizeof(char)*qtdLetras);
@@ -40,20 +55,17 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 			str[j+1] = '\0';	
 			j++;
 		}
-		printf("%s\n\n", str);
 		linha[k] = (char*)malloc(sizeof(char)*(qtdLetras+1));
 		strcpy(linha[k], str);
-
 	}
 
    	for (int i = 0; i < qtdLinhas;i++) {
    		if(pg == 1) pg = 2; else pg = 1;
 	 	setvisualpage(pg);
-   		cleardevice();
+//   		cleardevice();
    		for(int l = 0; l < qtdLetras;){
    			if(pg == 1) pg = 2; else pg = 1;
 //	 		setvisualpage(pg);
-	   		
 			newStr[l] = linha[i][l];
 			newStr[l+1] = '\0';
 			outtextxy(pos_x ,pos_y + (i*alturaString),newStr);
@@ -237,19 +249,26 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-void pegarItem(TItem *_item, TCamera *camera){
+void pegarItem(TItem *_item, TCamera *camera, TInventario *inventario){
+	FILE *Arq = fopen("inventario.txt","a");
+	
 	for(int i = 0;i<camera->qtdItens;i++){
 		TItem item = camera->itens[i];
 		if(item.id == _item->id){
+			camera->qtdItens --;
+			camera->itens[i - 1] = camera->itens[i + 1];
+			camera->itens = (TItem*)realloc(camera->itens,sizeof(TItem)*camera->qtdItens);
+			fprintf(Arq, item.nome);
 			printf("pegou o item %d na camera:%d\n",item.id,camera->id);
 		}
 	}
+	fclose(Arq);
 //	*inventario.qtdItens = *inventario.qtdItens + 1;
 //	(TInventario*)realloc(inventario,sizeof(TInventario)*inventario.qtdItens);
 //	*inventario.itens[qtdItens] = *item;
 }
 
-void colisaoMouseItens(TMouse *mouse,TCamera camera) {
+void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario inventario) {
 	for(int i = 0;i<camera.qtdItens;i++) {
 		TItem item = camera.itens[i];
 		if (mouse->x < item.x + item.largura && 
@@ -260,10 +279,11 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 			int largura_texto = textwidth(item.nome);
 			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
 //			animacao_texto(item.nome,8,item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura);
-//			delay(50);
+			delay(50);
     		
     		if(verificaMouseClick() == 1){
-    			pegarItem(&item,&camera);	
+    			printf("clicou");
+    			pegarItem(&item,&camera,&inventario);	
 			}	
 		}
 	}
@@ -300,13 +320,15 @@ int gt1 = GetTickCount();
 
 int Final() {
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,1);
+	int LarTela;
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 250;
 	int gt2;
 	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama. Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
 	
 	while(true) {
  		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {	
-			animacao_texto(texto,1000,2000,50,50);
+			animacao_texto(texto,LarTela,583,50,50);
 		}
 	}
 }
@@ -334,7 +356,9 @@ int Comeca_Jogo(){
 	
 	TMouse *mouse = mousePos();
 
-//	TIventario *inventario; 
+	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
+	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
+	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
 	
@@ -386,9 +410,8 @@ int Comeca_Jogo(){
 
  			mostrarCamera(cameras[camera_atual]);
 			mostrarItensCamera(cameras[camera_atual]);
-			colisaoMouseItens(mousePos(),cameras[camera_atual]);
+			colisaoMouseItens(mousePos(),cameras[camera_atual],*inventario);
 			
-			animacao_texto("Teste de animação de texto",750,26,300,400);
  			setactivepage(pg);
 		}
 		
