@@ -80,7 +80,12 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 	}
 	
 	free(str);
+
+	for(int i = 0; i < qtdLinhas; i++) {
+		free(linha[i]);	
+	}
 	free(linha);
+	linha = NULL;
 	free(newStr);
 
 }
@@ -249,16 +254,18 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-void pegarItem(TItem *_item, TCamera *camera, TInventario *inventario){
+void pegarItem(TItem *_item, TCamera *camera){
 	FILE *Arq = fopen("inventario.txt","a");
 	
 	for(int i = 0;i<camera->qtdItens;i++){
 		TItem item = camera->itens[i];
 		if(item.id == _item->id){
-			camera->qtdItens --;
-			camera->itens[i - 1] = camera->itens[i + 1];
-			camera->itens = (TItem*)realloc(camera->itens,sizeof(TItem)*camera->qtdItens);
-			fprintf(Arq, item.nome);
+//			camera->qtdItens --;
+//			camera->itens[i - 1] = camera->itens[i + 1];
+//			camera->itens = (TItem*)realloc(camera->itens,sizeof(TItem)*camera->qtdItens);
+			char string[10];
+			fprintf(Arq, itoa(item.id,string,10));
+			fprintf(Arq,"\n");
 			printf("pegou o item %d na camera:%d\n",item.id,camera->id);
 		}
 	}
@@ -268,7 +275,7 @@ void pegarItem(TItem *_item, TCamera *camera, TInventario *inventario){
 //	*inventario.itens[qtdItens] = *item;
 }
 
-void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario inventario) {
+void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 	for(int i = 0;i<camera.qtdItens;i++) {
 		TItem item = camera.itens[i];
 		if (mouse->x < item.x + item.largura && 
@@ -283,7 +290,7 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario inventario) {
     		
     		if(verificaMouseClick() == 1){
     			printf("clicou");
-    			pegarItem(&item,&camera,&inventario);	
+    			pegarItem(&item,&camera);	
 			}	
 		}
 	}
@@ -356,8 +363,8 @@ int Comeca_Jogo(){
 	
 	TMouse *mouse = mousePos();
 
-	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
-	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
+//	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
+//	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
@@ -410,7 +417,7 @@ int Comeca_Jogo(){
 
  			mostrarCamera(cameras[camera_atual]);
 			mostrarItensCamera(cameras[camera_atual]);
-			colisaoMouseItens(mousePos(),cameras[camera_atual],*inventario);
+			colisaoMouseItens(mousePos(),cameras[camera_atual]);
 			
  			setactivepage(pg);
 		}
