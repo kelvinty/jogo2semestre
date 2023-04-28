@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 dinamitedinamitedinamitedinamitedinamitedinamitedinamitedinamite
 dinamite
 dinamite
@@ -7,3 +8,6 @@ dinamite
 0
 0
 0
+=======
+dinamitedinamitedinamitedinamitedinamitedinamitedinamitedinamitedinamitedinamite
+>>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
