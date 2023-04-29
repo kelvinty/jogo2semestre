@@ -140,14 +140,14 @@ struct TInventario {
 	int y;
 };
 
-TInventario *criar_inventario(int maxItens, int qtdItens, int x, int y) {
+TInventario *criar_inventario(int x, int y) {
 	TInventario *inventario = (TInventario*)calloc(1,sizeof(TInventario));
 	
-	inventario->maxItens = maxItens;
-	inventario->qtdItens = qtdItens;
+//	inventario->maxItens = maxItens;
+//	inventario->qtdItens = qtdItens;
 	inventario->x = x;
 	inventario->y = y;
-	inventario->itens = criar_vetor_itens(2);
+	inventario->itens = NULL;
 	
 	return inventario;
 }
@@ -219,6 +219,22 @@ void mostrarItensCamera(const TCamera *camera) {
 	}
 }
 
+void mostrarInventario(const TInventario *inventario) {
+	for(int i =0;i <= inventario->itens->capacidade;i++){
+		bar(inventario->x,inventario->y+(i*100),inventario->x+100,inventario->y+i+1*100);
+	}
+//	putimage(0,0,camera->imagem,COPY_PUT);
+}
+
+void mostrarItensInventario(const TInventario *inventario) {
+	for(int i =0;i < inventario->itens->tamanho;i++) {
+		Item item = inventario->itens->itens[i]; 
+		putimage(inventario->x, inventario->y + item.altura*i, item.mascara, AND_PUT);
+		putimage(inventario->x, inventario->y + item.altura*i, item.imagem, OR_PUT);
+	}
+}
+
+
 void removeItensCamera(TCamera *camera) {
 	for(int i =0;i<camera->qtdItens;i++) {
 		Item *item = camera->itens->itens; 
@@ -244,46 +260,25 @@ bool verificaMouseClick() {
 	return clicou;
 }
 
-<<<<<<< HEAD
-void pegarItem(TItem *_item, TCamera *camera){
-=======
-void pegarItem(Item *_item, TCamera *camera){
->>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
-	FILE *Arq = fopen("inventario.txt","a");
-	
+
+void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
+
 	for(int i = 0;i<camera->itens->tamanho;i++){
 		Item item = camera->itens->itens[i];
 		if(item.id == _item->id){
-<<<<<<< HEAD
-//			camera->qtdItens --;
-//			camera->itens[i - 1] = camera->itens[i + 1];
-//			camera->itens = (TItem*)realloc(camera->itens,sizeof(TItem)*camera->qtdItens);
-			char string[10];
-			fprintf(Arq, itoa(item.id,string,10));
-			fprintf(Arq,"\n");
-			printf("pegou o item %d na camera:%d\n",item.id,camera->id);
-=======
 			Item item = camera->itens->itens[i];
 			remove_item_vetor(camera->itens,&item);
-			
-//			printf("pegou o item %d na camera:%d\n",item.id,camera->id);
->>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
+			append_vetor_itens(inventario->itens,&item);
 		}
 	}
-	fclose(Arq);
-//	*inventario.qtdItens = *inventario.qtdItens + 1;
-//	(TInventario*)realloc(inventario,sizeof(TInventario)*inventario.qtdItens);
-//	*inventario.itens[qtdItens] = *item;
+
 }
 
-void colisaoMouseItens(TMouse *mouse,TCamera camera) {
-<<<<<<< HEAD
-	for(int i = 0;i<camera.qtdItens;i++) {
-		TItem item = camera.itens[i];
-=======
+void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
+
 	for(int i = 0;i<camera.itens->tamanho;i++) {
 		Item item = camera.itens->itens[i];
->>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
+
 		if (mouse->x < item.x + item.largura && 
 			mouse->x + mouse->largura > item.x && 
 			mouse->y < item.y + item.altura && 
@@ -295,12 +290,7 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera) {
 			delay(50);
     		
     		if(verificaMouseClick() == 1){
-<<<<<<< HEAD
-    			printf("clicou");
-=======
-//    			printf("clicou");
->>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
-    			pegarItem(&item,&camera);	
+    			pegarItem(&item,&camera,inventario);	
 			}	
 		}
 	}
@@ -403,6 +393,9 @@ int Comeca_Jogo(){
 	TCamera *camera2 = criarCamera(2,img_cam2,saida0);
 	TCamera *camera3 = criarCamera(3,img_cam3,saida0);
  	
+ 	TInventario *inventario = criar_inventario(LarJogo-100,0);
+ 	inventario->itens = criar_vetor_itens(2);
+ 	
  	TCamera *cameras = (TCamera*)malloc(sizeof(TCamera)*4);
  	
  	cameras[0] = *camera0;
@@ -414,6 +407,7 @@ int Comeca_Jogo(){
  	cameras[1].itens = criar_vetor_itens(20);
  	cameras[2].itens = criar_vetor_itens(20);
  	cameras[3].itens = criar_vetor_itens(20);
+ 	
  	append_vetor_itens(cameras[0].itens,dinamite1);
  	append_vetor_itens(cameras[0].itens,dinamite2);
  	append_vetor_itens(cameras[0].itens,dinamite3);
@@ -428,16 +422,16 @@ int Comeca_Jogo(){
  			if(pg == 1) pg = 2; else pg = 1;
  			setvisualpage(pg);
  			cleardevice();
+ 			
  			mudarDeCamera(&camera_atual,&tecla);
 
-<<<<<<< HEAD
- 			mostrarCamera(cameras[camera_atual]);
-			mostrarItensCamera(cameras[camera_atual]);
-=======
  			mostrarCamera(&cameras[camera_atual]);
 			mostrarItensCamera(&cameras[camera_atual]);
->>>>>>> 029ccc6dcb906266324b32d59c68b1c9e97b12cb
-			colisaoMouseItens(mousePos(),cameras[camera_atual]);
+			
+			mostrarInventario(inventario);
+			mostrarItensInventario(inventario);
+			
+			colisaoMouseItens(mousePos(),cameras[camera_atual],inventario);
 			
  			setactivepage(pg);
 		}
