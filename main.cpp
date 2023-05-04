@@ -9,6 +9,13 @@
 #include <math.h>
 #include <string.h>
 
+#include <mfapi.h>
+#include <mfidl.h>
+#include <Mfreadwrite.h>
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfreadwrite.lib")
+
+
 
 int pg = 1;
 int last_time = clock();
