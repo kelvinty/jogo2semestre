@@ -1,4 +1,5 @@
 #include "vetor_itens.h"
+#include "vetor_finais.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
@@ -32,6 +33,7 @@ int strlen(char *str)
 }
 
 void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
+	
 	double larguraString = textwidth(texto);
 	int alturaString = textheight(texto);
 	int qtdLetrasTexto = strlen(texto);
@@ -116,6 +118,19 @@ typedef struct vetor_itens{
 	Item *itens;
 } ItensVetor; 
 
+typedef struct final {
+	int id;
+	ItensVetor *itens;
+	char *descricao;
+	char *historia; 
+} Final;
+
+typedef struct vetor_finais {
+	int capacidade;
+	int tamanho;
+	Final *finais;
+} FinaisVetor;
+
 TMouse *mousePos(){
 	TMouse *mouse = (TMouse*)malloc(sizeof(TMouse));
 	if(!ismouseclick(WM_LBUTTONDOWN)){
@@ -152,38 +167,27 @@ TInventario *criar_inventario(int x, int y) {
 	return inventario;
 }
 
-
-struct TFinal {
-	int id;
-	ItensVetor *itens;
-	char *descricao;
-	char *historia; 
-};
-
-TFinal *criarFinal(int _id, char *_descricao, char *_historia) {
-	TFinal *final = (TFinal*)calloc(1,sizeof(TFinal));
-	final->id = _id;
-	final->itens = criar_vetor_itens(2);
-	final->descricao = _descricao;
-	final->historia = _historia;
-	return final;
-}
-
-struct TSaida {
+typedef struct saida {
 	int id;
 	char* nome;
 	int x;
 	int y;
-	TFinal *finais;
-};
+	int largura;
+	int altura;
+	FinaisVetor *finais;
+}Saida;
 
-TSaida *criarSaida(int _id,char*_nome,int _x, int _y,TFinal *_finais) {
-	TSaida *saida = (TSaida*)calloc(1,sizeof(TSaida));
+Saida *criarSaida(int _id,char*_nome,int _x, int _y,int largura, int altura) {
+	Saida *saida = (Saida*)calloc(1,sizeof(Saida));
+	
 	saida->id = _id;
 	saida->nome = _nome;
 	saida->x = _x;
 	saida->y = _y;
-	saida->finais = _finais;
+	saida->largura = largura;
+	saida->altura = altura;
+	saida->finais = NULL;
+	
 	return saida;
 }
 
@@ -192,17 +196,17 @@ struct TCamera {
 	int qtdItens;
 	void *imagem;
 	ItensVetor *itens;
-	TSaida *saida;
+	Saida *saida;
 };
 //CRUD CAMERA
 
-TCamera *criarCamera(int _id,void*_imagem, TSaida *_saida) {
+TCamera *criarCamera(int _id,void*_imagem) {
 	TCamera *camera = (TCamera*) calloc(1,sizeof(TCamera));
 	
 	camera->imagem = _imagem;
 	camera->id = _id;
 	camera->itens = NULL;
-	camera->saida = _saida;
+	camera->saida = NULL;
 	
 	return camera;
 }
@@ -217,6 +221,17 @@ void mostrarItensCamera(const TCamera *camera) {
 		putimage(item.x, item.y, item.mascara, AND_PUT);
 		putimage(item.x, item.y, item.imagem, OR_PUT);
 	}
+}
+
+void mostrarSaidasCamera(const TCamera *camera) {
+	Saida *saida = camera->saida; 
+	if(saida != NULL){
+//		bar(saida->x,saida->y,saida->largura,saida->altura);
+		rectangle(saida->x,saida->y,saida->largura + saida->x,saida->altura+ saida->y);
+	}
+//	putimage(item.x, item.y, item.mascara, AND_PUT);
+//	putimage(item.x, item.y, item.imagem, OR_PUT);
+	
 }
 
 void mostrarInventario(const TInventario *inventario) {
@@ -297,6 +312,31 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
 	
 }
 
+void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
+	if(camera.saida != NULL) {
+		Saida *saida = camera.saida;
+
+		if (mouse->x < saida->x + saida->largura && 
+			mouse->x + mouse->largura > saida->x && 
+			mouse->y < saida->y + saida->altura && 
+			mouse->y + mouse->altura > saida->y) 
+		{
+			int largura_texto = textwidth(saida->nome);
+			int altura_texto = textheight(saida->nome);
+			outtextxy(saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y + ((saida->altura/2) - (altura_texto/2)),saida->nome);
+//			animacao_texto(saida->nome,8,saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y+saida->altura);
+    		printf("clicou na saida:%s\n", saida->nome);
+    		if(verificaMouseClick() == 1){
+    			printf("clicou na saida:%s\n", saida->nome);	
+			}	
+		}	
+	}
+//	for(int i = 0;i<camera.itens->tamanho;i++) {
+	
+//	}
+	
+}
+
 void mudarDeCamera(int *camera_atual,int *tecla) {
 	if(GetKeyState(VK_LEFT)&0X80) {
 		*camera_atual -= 1;
@@ -325,7 +365,7 @@ int gt1 = GetTickCount();
 //TItem *fosforo = criarItem(7,"fosforo","fosforo.bmp","fosforo_pb.bmp",400,600,50,100);
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
-int Final() {
+int Conclusao() {
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	int LarTela;
 	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
@@ -377,21 +417,53 @@ int Comeca_Jogo(){
     Item *dinamite6 = criar_item(5,"dinamite6",imagem,mascara,700,200,100,100);
     //variaveis do jogo
     
-    Item *itens_final0 = (Item*)malloc(sizeof(Item));
-	itens_final0[0] = *dinamite2;
+	Final *final0 = criar_final(0,"fuga de carro","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id dignissim quam. Proin sit amet pulvinar nulla, et sagittis magna. Curabitur congue consectetur sollicitudin. Suspendisse aliquam lorem a est tincidunt semper. Vestibulum sed hendrerit elit. Praesent lorem ex, lacinia vel");
+	Final *final1 = criar_final(1,"matar monstro","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id dignissim quam. Proin sit amet pulvinar nulla, et sagittis magna. Curabitur congue consectetur sollicitudin. Suspendisse aliquam lorem a est tincidunt semper. Vestibulum sed hendrerit elit. Praesent lorem ex, lacinia vel");
+	Final *final2 = criar_final(2,"quebrar a janela","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id dignissim quam. Proin sit amet pulvinar nulla, et sagittis magna. Curabitur congue consectetur sollicitudin. Suspendisse aliquam lorem a est tincidunt semper. Vestibulum sed hendrerit elit. Praesent lorem ex, lacinia vel");
+	Final *final3 = criar_final(3,"botar fogo na casa","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id dignissim quam. Proin sit amet pulvinar nulla, et sagittis magna. Curabitur congue consectetur sollicitudin. Suspendisse aliquam lorem a est tincidunt semper. Vestibulum sed hendrerit elit. Praesent lorem ex, lacinia vel");
 	
-	TFinal *final0 = criarFinal(0,"fuga do carro","kfhjgjodsfhg pokdjsfishdjghfdsjghisj kjshduifghsdijgsdifghoifdus");
-	TSaida *saida0 = criarSaida(0,"porta",200,200,final0);
+	final0->itens = criar_vetor_itens(2);
+	
+	append_vetor_itens(final0->itens,dinamite2);
+	append_vetor_itens(final0->itens,dinamite5);
+	
+	FinaisVetor *finais0 = criar_vetor_finais(4);
+	
+	append_vetor_finais(finais0,final0);
+	append_vetor_finais(finais0,final1);
+	append_vetor_finais(finais0,final2);
+	append_vetor_finais(finais0,final3);
+	
+	print_vetor_finais(finais0);
+	print_vetor_itens(final0->itens);
+	
+	Saida *saida0 = criarSaida(0,"porta",1300,300,200,500);
+	Saida *saida1 = criarSaida(0,"janela",50,300,750,300);
+	
+	saida0->finais = criar_vetor_finais(6);
+	saida1->finais = criar_vetor_finais(6);
+	
+	append_vetor_finais(saida0->finais,final0);
+	append_vetor_finais(saida0->finais,final1);
+	append_vetor_finais(saida0->finais,final2);
+	append_vetor_finais(saida0->finais,final3);
+	
+	print_vetor_finais(saida0->finais);
 	
 	void *img_cam0 = load_image("quarto0.bmp",LarJogo,AltJogo,0,0);
 	void *img_cam1 = load_image("quarto1.bmp",LarJogo,AltJogo,0,0);
 	void *img_cam2 = load_image("quarto2.bmp",LarJogo,AltJogo,0,0);
 	void *img_cam3 = load_image("quarto3.bmp",LarJogo,AltJogo,0,0);
 	
-	TCamera *camera0 = criarCamera(0,img_cam0,saida0);
-	TCamera *camera1 = criarCamera(1,img_cam1,saida0);
-	TCamera *camera2 = criarCamera(2,img_cam2,saida0);
-	TCamera *camera3 = criarCamera(3,img_cam3,saida0);
+	TCamera *camera0 = criarCamera(0,img_cam0);
+	camera0->saida = saida0;
+	
+	TCamera *camera1 = criarCamera(1,img_cam1);
+	
+	TCamera *camera2 = criarCamera(2,img_cam2);
+	camera2->saida = saida1;
+	
+	TCamera *camera3 = criarCamera(3,img_cam3);
  	
  	TInventario *inventario = criar_inventario(LarJogo-100,0);
  	inventario->itens = criar_vetor_itens(2);
@@ -410,10 +482,10 @@ int Comeca_Jogo(){
  	
  	append_vetor_itens(cameras[0].itens,dinamite1);
  	append_vetor_itens(cameras[0].itens,dinamite2);
- 	append_vetor_itens(cameras[0].itens,dinamite3);
- 	append_vetor_itens(cameras[0].itens,dinamite4);
-	append_vetor_itens(cameras[0].itens,dinamite5);
-	append_vetor_itens(cameras[0].itens,dinamite6);
+ 	append_vetor_itens(cameras[1].itens,dinamite3);
+ 	append_vetor_itens(cameras[3].itens,dinamite4);
+	append_vetor_itens(cameras[1].itens,dinamite5);
+	append_vetor_itens(cameras[3].itens,dinamite6);
 	
  	while(true) {
  		gt2 = GetTickCount();
@@ -430,14 +502,19 @@ int Comeca_Jogo(){
 			
 			mostrarInventario(inventario);
 			mostrarItensInventario(inventario);
-			
+			mostrarSaidasCamera(&cameras[camera_atual]);
 			colisaoMouseItens(mousePos(),cameras[camera_atual],inventario);
+			colisaoMouseSaidas(mousePos(),cameras[camera_atual],inventario);
 			
  			setactivepage(pg);
 		}
 		
 	}
 	
+	apaga_vetor_finais(&saida0->finais);
+	apaga_vetor_finais(&saida1->finais);
+	free(saida0);
+	free(saida1);
 	apaga_vetor_itens(&cameras[0].itens);
  	free(cameras);
 	return 0;
@@ -477,7 +554,7 @@ int Menu(){
 	
 			if(ismouseclick(WM_LBUTTONDOWN)){
 				if(X > 200 && X < 400 && Y > 200 && Y < 250){
-					return Final();
+					return Conclusao();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
