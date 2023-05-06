@@ -8,16 +8,12 @@
 #include <conio.h>
 #include <math.h>
 #include <string.h>
-
-#include <mfapi.h>
-#include <mfidl.h>
-#include <Mfreadwrite.h>
-
-#pragma comment(lib, "mfplat.lib")
-#pragma comment(lib, "mfreadwrite.lib")
+#include <windows.h>
 
 int pg = 1;
 int last_time = clock();
+
+
 
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
@@ -58,7 +54,7 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
   	for(int k = 0;k < qtdLinhas;k++) {
   		for(int j = 0; j < qtdLetras;){
   			str[j] = texto[j+ (k*qtdLetras)];
-			str[j+1] = '\0';	
+			str[j+1] = '\0';
 			j++;
 		}
 		linha[k] = (char*)malloc(sizeof(char)*(qtdLetras+1));
@@ -68,10 +64,9 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
    	for (int i = 0; i < qtdLinhas;i++) {
    		if(pg == 1) pg = 2; else pg = 1;
 	 	setvisualpage(pg);
-//   		cleardevice();
+
    		for(int l = 0; l < qtdLetras;){
    			if(pg == 1) pg = 2; else pg = 1;
-//	 		setvisualpage(pg);
 			newStr[l] = linha[i][l];
 			newStr[l+1] = '\0';
 			outtextxy(pos_x ,pos_y + (i*alturaString),newStr);
@@ -79,10 +74,8 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 			setactivepage(pg);
 			l++;
 		}
-		 // itera pelo array de linhas (substitua "3" pelo número de linhas no seu caso)
-        outtextxy(pos_x, pos_y + (i*alturaString), linha[i]); // exibe a linha atual
+        outtextxy(pos_x, pos_y + (i*alturaString), linha[i]);
     	setactivepage(pg);
-		printf("\n");
 	}
 	
 	free(str);
@@ -319,6 +312,8 @@ void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
 }
 
 void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
+//	POINT P;
+//	GetCursorPos(&P);
 	if(camera.saida != NULL) {
 		Saida *saida = camera.saida;
 
@@ -331,16 +326,13 @@ void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
 			int altura_texto = textheight(saida->nome);
 			outtextxy(saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y + ((saida->altura/2) - (altura_texto/2)),saida->nome);
 //			animacao_texto(saida->nome,8,saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y+saida->altura);
-    		printf("clicou na saida:%s\n", saida->nome);
+//    		printf("clicou na saida:%s\n", saida->nome);
     		if(verificaMouseClick() == 1){
+    			printf("clicou");
     			printf("clicou na saida:%s\n", saida->nome);	
 			}	
 		}	
-	}
-//	for(int i = 0;i<camera.itens->tamanho;i++) {
-	
-//	}
-	
+	}	
 }
 
 void mudarDeCamera(int *camera_atual,int *tecla) {
@@ -372,6 +364,11 @@ int gt1 = GetTickCount();
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int Conclusao() {
+		
+	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
+	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
+	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
+	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	int LarTela;
 	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
@@ -382,11 +379,13 @@ int Conclusao() {
  		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {	
 			animacao_texto(texto,LarTela,583,50,50);
+			
 		}
 	}
 }
 
 int Comeca_Jogo(){
+	
 	int gt2;
 	
     int tecla = 0;
@@ -411,6 +410,9 @@ int Comeca_Jogo(){
 
 //	TInventario *inventario = (TInventario*)malloc(sizeof(TInventario)*1);
 //	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
+
+	//sons
+	
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
 	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
