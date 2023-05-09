@@ -11,7 +11,7 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=
 CppCompiler=
-Linker=-lbgi_@@_-lgdi32_@@_-lcomdlg32_@@_-luuid_@@_-loleaut32_@@_-lole32_@@_
+Linker=-lbgi_@@_-lgdi32_@@_-lcomdlg32_@@_-luuid_@@_-loleaut32_@@_-lole32_@@_-lwinmm_@@_
 _@@_
 IsCpp=1
 Icon=
@@ -28,9 +28,9 @@ CommandLine=
 Folders=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=4
-CompilerSettings=0000000100000000001000000
-UnitCount=5
+CompilerSet=6
+CompilerSettings=0000000000000000000000000
+UnitCount=6
 
 [VersionInfo]
 Major=1
@@ -93,6 +93,16 @@ BuildCmd=
 
 [Unit5]
 FileName=vetor_finais.h
+CompileCpp=1
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit6]
+FileName=Untitled1.cpp
 CompileCpp=1
 Folder=
 Compile=1

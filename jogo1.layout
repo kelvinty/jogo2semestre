@@ -1,5 +1,5 @@
 [Editors]
-Order=2,0,1,3,4
+Order=0
 Focused=0
 [Editor_0]
 <<<<<<< HEAD
@@ -8,9 +8,9 @@ Focused=0
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
-CursorCol=49
-CursorRow=25
-TopLine=14
+CursorCol=24
+CursorRow=599
+TopLine=473
 =======
 CursorCol=1
 CursorRow=10
@@ -68,15 +68,20 @@ LeftChar=1
 [Editor_2]
 CursorCol=15
 CursorRow=20
-TopLine=7
+TopLine=1
 LeftChar=1
 [Editor_3]
 CursorCol=2
 CursorRow=71
-TopLine=66
+TopLine=1
 LeftChar=1
 [Editor_4]
 CursorCol=29
 CursorRow=8
+TopLine=1
+LeftChar=1
+[Editor_5]
+CursorCol=21
+CursorRow=9
 TopLine=1
 LeftChar=1

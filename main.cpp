@@ -364,6 +364,7 @@ int gt1 = GetTickCount();
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int Conclusao() {
+	mciSendString("stop Insetos", NULL, 0, 0);
 		
 	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
 	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
@@ -412,6 +413,13 @@ int Comeca_Jogo(){
 //	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
 
 	//sons
+	
+	mciSendString("open .\\Audios\\BugsSound.mp3 type MPEGVideo alias Insetos", NULL, 0, 0);
+	waveOutSetVolume(0,0x88888888);
+	mciSendString("play Insetos repeat", NULL, 0, 0);
+/*	mciSendString("seek Tema to start", NULL, 0, 0);
+	waveOutSetVolume(0,0x44444444);
+	mciSendString("play Tema repeat", NULL, 0, 0);*/
 	
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
@@ -528,40 +536,74 @@ int Comeca_Jogo(){
 	return 0;
 }
 
+int Tutorial(){
+	int X,Y;
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
+	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
+	
+	LarJogo = LarTela;
+	AltJogo = AltTela;
+	
+	xIniJogo = (LarTela - LarJogo) / 2;
+	yIniJogo = AltJogo;
+	
+	void *img_Menu = load_image("Tutorial.bmp",LarJogo,AltJogo,0,0);
+	
+	return 0;
+}
+
 int Menu(){
 
 	int X,Y;
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
 	
-	setbkcolor(BLACK);
-	setcolor(WHITE);
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,5);
-	outtextxy(200, 50, "Blend Scape");
+	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
+	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
 	
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,3);
-	rectangle(200, 100,400,150);
-	outtextxy(220, 115, "Iniciar");
+	LarJogo = LarTela;
+	AltJogo = AltTela;
 	
-	rectangle(200, 200,400,250);
-	outtextxy(220, 215, "Sair");
+	xIniJogo = (LarTela - LarJogo) / 2;
+	yIniJogo = AltJogo;
+	
+	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
+	waveOutSetVolume(0,0xFFFFFFFF);
+	mciSendString("play Tema repeat", NULL, 0, 0);
+	
+	void *img_Menu = load_image("HorrorHut3.bmp",LarJogo,AltJogo,0,0);
+
 	int gt2;
 	
 	while(true){
 		X = mousex();
 		Y = mousey();
+		
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
+//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));		
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
-				if(X > 200 && X < 400 && Y > 100 && Y < 150){
+				if(X > 645 && X < 800 && Y > 490 && Y < 550){
+					mciSendString("stop Tema", NULL, 0, 0);
 					return Comeca_Jogo();
+					break;
+				}
+				clearmouseclick(WM_LBUTTONDOWN);
+			}
+			
+			if(ismouseclick(WM_LBUTTONDOWN)){
+		
+				if(X > 590 && X < 850 && Y > 570 && Y < 630){
+					return Tutorial();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
 			}
 	
 			if(ismouseclick(WM_LBUTTONDOWN)){
-				if(X > 200 && X < 400 && Y > 200 && Y < 250){
+				if(X > 660 && X < 785 && Y > 650 && Y < 705){
 					return Conclusao();
 					break;
 				}
@@ -569,7 +611,6 @@ int Menu(){
 			}
 		}
 	}
-	
 	return 0;
 }
 
