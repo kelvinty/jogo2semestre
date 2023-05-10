@@ -536,6 +536,8 @@ int Comeca_Jogo(){
 	return 0;
 }
 
+int Menu();
+
 int Tutorial(){
 	int X,Y;
 	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
@@ -551,6 +553,28 @@ int Tutorial(){
 	
 	void *img_Menu = load_image("Tutorial.bmp",LarJogo,AltJogo,0,0);
 	
+	setcolor(WHITE);
+	rectangle(50, 800, 150, 850);
+
+	int gt2;
+	
+	while(true){
+		X = mousex();
+		Y = mousey();
+		
+		gt2 = GetTickCount();
+		if(gt2 - gt1 > 1000/60) {
+//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));		
+			if(ismouseclick(WM_LBUTTONDOWN)){
+		
+				if(X > 30 && X < 200 && Y > 650 && Y < 700){
+					return Menu();
+					break;
+				}
+				clearmouseclick(WM_LBUTTONDOWN);
+			}
+		}
+	}
 	return 0;
 }
 
@@ -582,7 +606,7 @@ int Menu(){
 		
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));		
+//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
 				if(X > 645 && X < 800 && Y > 490 && Y < 550){
@@ -604,6 +628,7 @@ int Menu(){
 	
 			if(ismouseclick(WM_LBUTTONDOWN)){
 				if(X > 660 && X < 785 && Y > 650 && Y < 705){
+					mciSendString("stop Tema", NULL, 0, 0);
 					return Conclusao();
 					break;
 				}
