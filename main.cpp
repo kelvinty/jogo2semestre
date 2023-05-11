@@ -10,10 +10,74 @@
 #include <string.h>
 #include <windows.h>
 
+//STRUCTS
+
+struct TMouse{
+	int x;
+	int y;
+	int largura;
+	int altura;
+};
+
+typedef struct item{
+	int id;
+	char *nome;
+	void *imagem;
+	void *mascara;
+	int x;
+	int y;
+	int largura;
+	int altura;
+} Item;
+
+typedef struct vetor_itens{
+	int capacidade;
+	int tamanho;
+	Item *itens;
+} ItensVetor; 
+
+typedef struct final {
+	int id;
+	ItensVetor *itens;
+	char *descricao;
+	char *historia; 
+} Final;
+
+typedef struct vetor_finais {
+	int capacidade;
+	int tamanho;
+	Final *finais;
+} FinaisVetor;
+
+struct TInventario {
+	int maxItens;
+	int qtdItens;
+	ItensVetor *itens;
+	int x;
+	int y;
+};
+
+typedef struct saida {
+	int id;
+	char* nome;
+	int x;
+	int y;
+	int largura;
+	int altura;
+	FinaisVetor *finais;
+}Saida;
+
+struct TCamera {
+	int id;
+	int qtdItens;
+	void *imagem;
+	ItensVetor *itens;
+	Saida *saida;
+};
+
+//FUNCOES E VARIAVEIS GLOBAIS
 int pg = 1;
 int last_time = clock();
-
-
 
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
@@ -93,31 +157,6 @@ void deleteImage(void *image){
 	free(image);
 }
 
-struct TMouse{
-	int x;
-	int y;
-	int largura;
-	int altura;
-};
-
-typedef struct item{
-	int id;
-	char *nome;
-	void *imagem;
-	void *mascara;
-	int x;
-	int y;
-	int largura;
-	int altura;
-} Item;
-
-typedef struct vetor_itens{
-	int capacidade;
-	int tamanho;
-	Item *itens;
-} ItensVetor; 
-
-<<<<<<< HEAD
 Item *criar_item(int id, char *nome,void *imagem, void *mascara, int x, int y, int largura, int altura) {
 	Item *item = (Item*)malloc(sizeof(Item));
 	
@@ -191,20 +230,76 @@ void remove_item_vetor(ItensVetor *vec,Item *item){
 		
 	}
 }
-=======
-typedef struct final {
-	int id;
-	ItensVetor *itens;
-	char *descricao;
-	char *historia; 
-} Final;
 
-typedef struct vetor_finais {
-	int capacidade;
-	int tamanho;
-	Final *finais;
-} FinaisVetor;
->>>>>>> 2eebc4185c8b7ddf476059fbd48fffe3dd3c9496
+Final *criar_final(int _id, char *_descricao, char *_historia) {
+	Final *final = (Final*)calloc(1,sizeof(Final));
+	
+	final->id = _id;
+	final->itens = NULL;
+	final->descricao = _descricao;
+	final->historia = _historia;
+	
+	return final;
+}
+
+void apaga_final(Final **final_ref) {
+	Final *final = *final_ref;
+	free(final);
+	*final_ref = NULL;
+}
+
+FinaisVetor *criar_vetor_finais(int capacidade){
+	FinaisVetor *vec = (FinaisVetor*) calloc(1,sizeof(FinaisVetor));
+	
+	vec->tamanho = 0;
+	vec->capacidade = capacidade;
+	vec->finais = (Final*) calloc(capacidade,sizeof(Final));
+	
+	return vec;
+}
+
+void print_vetor_finais(FinaisVetor *vec){
+	for(int i = 0;i < vec->tamanho;i++){
+		printf("final:%s, indice:%d\n",vec->finais[i].descricao,i);
+	}
+}
+
+void apaga_vetor_finais(FinaisVetor **vec_ref){
+	FinaisVetor *vec = *vec_ref;
+	
+	free(vec->finais);
+	free(vec);
+	
+	*vec_ref = NULL;
+}
+
+void append_vetor_finais(FinaisVetor *vec, Final *final){
+	if(vec->tamanho == vec->capacidade){
+		fprintf(stderr,"ERROR in 'append'\n");
+		fprintf(stderr,"Vetor cheio'\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	vec->finais[vec->tamanho] = *final;
+
+	vec->tamanho++;
+}
+
+void remove_final_vetor(FinaisVetor *vec,Final *final){
+	if(vec->tamanho > 0) {
+		for(int i = 0;i < vec->tamanho;i++){
+			if(vec->finais[i].id == final->id) {
+				for(int j = i; j < vec->tamanho -1;j++) {
+//					printf("\nachou id:%d | item_id:%d",vec->itens[i].id,item->id);
+					vec->finais[j] = vec->finais[j+1];
+				}	
+				vec->tamanho--;
+			}
+		}
+		print_vetor_finais(vec);
+	}
+}
+
 
 TMouse *mousePos(){
 	TMouse *mouse = (TMouse*)malloc(sizeof(TMouse));
@@ -222,13 +317,6 @@ TMouse *mousePos(){
 	return mouse;
 }
 
-struct TInventario {
-	int maxItens;
-	int qtdItens;
-	ItensVetor *itens;
-	int x;
-	int y;
-};
 
 TInventario *criar_inventario(int x, int y) {
 	TInventario *inventario = (TInventario*)calloc(1,sizeof(TInventario));
@@ -242,15 +330,7 @@ TInventario *criar_inventario(int x, int y) {
 	return inventario;
 }
 
-typedef struct saida {
-	int id;
-	char* nome;
-	int x;
-	int y;
-	int largura;
-	int altura;
-	FinaisVetor *finais;
-}Saida;
+
 
 Saida *criarSaida(int _id,char*_nome,int _x, int _y,int largura, int altura) {
 	Saida *saida = (Saida*)calloc(1,sizeof(Saida));
@@ -266,13 +346,7 @@ Saida *criarSaida(int _id,char*_nome,int _x, int _y,int largura, int altura) {
 	return saida;
 }
 
-struct TCamera {
-	int id;
-	int qtdItens;
-	void *imagem;
-	ItensVetor *itens;
-	Saida *saida;
-};
+
 //CRUD CAMERA
 
 TCamera *criarCamera(int _id,void*_imagem) {
@@ -441,10 +515,10 @@ int gt1 = GetTickCount();
 
 int Conclusao() {
 	mciSendString("stop Insetos", NULL, 0, 0);
-		
-	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
+//		
+//	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
+//	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
+//	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
 	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	int LarTela;
