@@ -1,14 +1,12 @@
-#include "vetor_itens.h"
-#include "vetor_finais.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
+#include <windows.h>
 #include <locale.h>
 #include <time.h>
 #include <conio.h>
 #include <math.h>
 #include <string.h>
-#include <windows.h>
 
 //STRUCTS
 
@@ -90,11 +88,9 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 int strlen(char *str)
 {
     int total=0;
-
     while( str[total] != '\0'){
     	total++;
-	}
-        
+	}    
     return total;
 }
 
@@ -313,7 +309,6 @@ TMouse *mousePos(){
 		mouse->y = mousey();
 		clearmouseclick(WM_LBUTTONDOWN);
 	}
-	
 	return mouse;
 }
 
@@ -439,45 +434,53 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 }
 
 void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
-
+	
+	POINT P;
+  	HWND janela;
+  	janela = GetForegroundWindow();
+  	
+  	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
+        if (ScreenToClient(janela, &P)) 
+  	
 	for(int i = 0;i<camera.itens->tamanho;i++) {
 		Item item = camera.itens->itens[i];
 
-		if (mouse->x < item.x + item.largura && 
-			mouse->x + mouse->largura > item.x && 
-			mouse->y < item.y + item.altura && 
-			mouse->y + mouse->altura > item.y) 
-		{
+		if (P.x < item.x + item.largura && P.x > item.x && P.y < item.y + item.altura && P.y > item.y) {
 			int largura_texto = textwidth(item.nome);
 			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
-//			animacao_texto(item.nome,8,item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura);
 			delay(50);
-    		
-    		if(verificaMouseClick() == 1){
-    			pegarItem(&item,&camera,inventario);	
-			}	
+    		if(GetKeyState(VK_LBUTTON)&0x80){
+    			pegarItem(&item,&camera,inventario);
+			}
+
 		}
 	}
 	
 }
 
 void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
-//	POINT P;
-//	GetCursorPos(&P);
+	
+	POINT P;
+  	HWND janela;
+  	janela = GetForegroundWindow();
+  	
+  	if (GetCursorPos(&P))
+        if (ScreenToClient(janela, &P)) 
+  	
 	if(camera.saida != NULL) {
 		Saida *saida = camera.saida;
 
-		if (mouse->x < saida->x + saida->largura && 
-			mouse->x + mouse->largura > saida->x && 
-			mouse->y < saida->y + saida->altura && 
-			mouse->y + mouse->altura > saida->y) 
+		if (P.x < saida->x + saida->largura && 
+			P.x > saida->x && 
+			P.y < saida->y + saida->altura && 
+			P.y > saida->y) 
 		{
 			int largura_texto = textwidth(saida->nome);
 			int altura_texto = textheight(saida->nome);
 			outtextxy(saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y + ((saida->altura/2) - (altura_texto/2)),saida->nome);
-//			animacao_texto(saida->nome,8,saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y+saida->altura);
-//    		printf("clicou na saida:%s\n", saida->nome);
-    		if(verificaMouseClick() == 1){
+			
+			delay(50);
+    		if(GetKeyState(VK_LBUTTON)&0x80){
     			printf("clicou");
     			printf("clicou na saida:%s\n", saida->nome);	
 			}	
@@ -515,12 +518,14 @@ int gt1 = GetTickCount();
 
 int Conclusao() {
 	mciSendString("stop Insetos", NULL, 0, 0);
-//		
-//	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
-//	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
-//	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
+		
+	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
+	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
+	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
+	
 	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
+	
 	int LarTela;
 	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
 	int gt2;
@@ -530,7 +535,6 @@ int Conclusao() {
  		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {	
 			animacao_texto(texto,LarTela,583,50,50);
-			
 		}
 	}
 }
@@ -542,16 +546,10 @@ int Comeca_Jogo(){
     int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	int LarTela,AltTela;
 	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
-	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
+	LarTela = 1280;
+	AltTela = 720;
 	
 	setlocale(LC_ALL,"Portuguese");
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,2);
@@ -616,10 +614,10 @@ int Comeca_Jogo(){
 	
 	print_vetor_finais(saida0->finais);
 	
-	void *img_cam0 = load_image("quarto0.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam1 = load_image("quarto1.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam2 = load_image("quarto2.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam3 = load_image("quarto3.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam0 = load_image("quarto0.bmp",LarTela,AltTela,0,0);
+	void *img_cam1 = load_image("quarto1.bmp",LarTela,AltTela,0,0);
+	void *img_cam2 = load_image("quarto2.bmp",LarTela,AltTela,0,0);
+	void *img_cam3 = load_image("quarto3.bmp",LarTela,AltTela,0,0);
 	
 	TCamera *camera0 = criarCamera(0,img_cam0);
 	camera0->saida = saida0;
@@ -631,7 +629,7 @@ int Comeca_Jogo(){
 	
 	TCamera *camera3 = criarCamera(3,img_cam3);
  	
- 	TInventario *inventario = criar_inventario(LarJogo-100,0);
+ 	TInventario *inventario = criar_inventario(LarTela-100,0);
  	inventario->itens = criar_vetor_itens(2);
  	
  	TCamera *cameras = (TCamera*)malloc(sizeof(TCamera)*4);
@@ -692,16 +690,10 @@ int Tutorial(){
 	int X,Y;
 	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
 	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
+	LarTela = 1280;
+	AltTela = 720;
 	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
-	
-	void *img_Menu = load_image("Tutorial.bmp",LarJogo,AltJogo,0,0);
+	void *img_Menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
 	
 	setcolor(WHITE);
 	rectangle(50, 800, 150, 850);
@@ -733,20 +725,15 @@ int Menu(){
 	int X,Y;
 	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
 	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
+	LarTela = 1280;
+	AltTela = 720;
 	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
 	
 	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
 	waveOutSetVolume(0,0xFFFFFFFF);
 	mciSendString("play Tema repeat", NULL, 0, 0);
 	
-	void *img_Menu = load_image("HorrorHut3.bmp",LarJogo,AltJogo,0,0);
+	void *img_Menu = load_image("HorrorHut3.bmp",LarTela,AltTela,0,0);
 
 	int gt2;
 	
@@ -779,7 +766,7 @@ int Menu(){
 			if(ismouseclick(WM_LBUTTONDOWN)){
 				if(X > 660 && X < 785 && Y > 650 && Y < 705){
 					mciSendString("stop Tema", NULL, 0, 0);
-					return Conclusao();
+//					return Conclusao();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
@@ -800,16 +787,8 @@ int Menu(){
 
 int main() {
 	
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
-	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
-	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
+	int LarTela = 1280;
+	int AltTela = 720;
 	
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(LarTela, AltTela,"meu jogo");
