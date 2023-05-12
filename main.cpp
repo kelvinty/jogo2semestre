@@ -1,19 +1,81 @@
-#include "vetor_itens.h"
-#include "vetor_finais.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
+#include <windows.h>
 #include <locale.h>
 #include <time.h>
 #include <conio.h>
 #include <math.h>
 #include <string.h>
-#include <windows.h>
 
+//STRUCTS
+
+struct TMouse{
+	int x;
+	int y;
+	int largura;
+	int altura;
+};
+
+typedef struct item{
+	int id;
+	char *nome;
+	void *imagem;
+	void *mascara;
+	int x;
+	int y;
+	int largura;
+	int altura;
+} Item;
+
+typedef struct vetor_itens{
+	int capacidade;
+	int tamanho;
+	Item *itens;
+} ItensVetor; 
+
+typedef struct final {
+	int id;
+	ItensVetor *itens;
+	char *descricao;
+	char *historia; 
+} Final;
+
+typedef struct vetor_finais {
+	int capacidade;
+	int tamanho;
+	Final *finais;
+} FinaisVetor;
+
+struct TInventario {
+	int maxItens;
+	int qtdItens;
+	ItensVetor *itens;
+	int x;
+	int y;
+};
+
+typedef struct saida {
+	int id;
+	char* nome;
+	int x;
+	int y;
+	int largura;
+	int altura;
+	FinaisVetor *finais;
+}Saida;
+
+struct TCamera {
+	int id;
+	int qtdItens;
+	void *imagem;
+	ItensVetor *itens;
+	Saida *saida;
+};
+
+//FUNCOES E VARIAVEIS GLOBAIS
 int pg = 1;
 int last_time = clock();
-
-
 
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
@@ -26,11 +88,9 @@ void* load_image(const char *endereco, int largura, int altura, int x, int y){
 int strlen(char *str)
 {
     int total=0;
-
     while( str[total] != '\0'){
     	total++;
-	}
-        
+	}    
     return total;
 }
 
@@ -93,42 +153,151 @@ void deleteImage(void *image){
 	free(image);
 }
 
-struct TMouse{
-	int x;
-	int y;
-	int largura;
-	int altura;
-};
+Item *criar_item(int id, char *nome,void *imagem, void *mascara, int x, int y, int largura, int altura) {
+	Item *item = (Item*)malloc(sizeof(Item));
+	
+	item->id = id;
+	item->nome = nome;
+	item->imagem = imagem;
+	item->mascara = mascara;
+	item->x = x;
+	item->y = y;
+	item->largura = largura;
+	item->altura = altura;
+	
+	return item;
+}
 
-typedef struct item{
-	int id;
-	char *nome;
-	void *imagem;
-	void *mascara;
-	int x;
-	int y;
-	int largura;
-	int altura;
-} Item;
 
-typedef struct vetor_itens{
-	int capacidade;
-	int tamanho;
-	Item *itens;
-} ItensVetor; 
 
-typedef struct final {
-	int id;
-	ItensVetor *itens;
-	char *descricao;
-	char *historia; 
-} Final;
+void apaga_item(Item **item_ref) {
+	Item *item = *item_ref;
+	free(item);
+	*item_ref = NULL;
+}
 
-typedef struct vetor_finais {
-	int capacidade;
-	int tamanho;
-	Final *finais;
-} FinaisVetor;
+ItensVetor *criar_vetor_itens(int capacidade){
+	ItensVetor *vec = (ItensVetor*) calloc(1,sizeof(ItensVetor));
+	
+	vec->tamanho = 0;
+	vec->capacidade = capacidade;
+	vec->itens = (Item*) calloc(capacidade,sizeof(Item));
+	
+	return vec;
+}
+
+void print_vetor_itens(ItensVetor *vec){
+	for(int i = 0;i < vec->tamanho;i++){
+		printf("item:%s, indice:%d\n",vec->itens[i].nome,i);
+	}
+}
+
+void apaga_vetor_itens(ItensVetor **vec_ref){
+	ItensVetor *vec = *vec_ref;
+	
+	free(vec->itens);
+	free(vec);
+	
+	*vec_ref = NULL;
+}
+
+void append_vetor_itens(ItensVetor *vec, Item *item){
+	if(vec->tamanho == vec->capacidade){
+		fprintf(stderr,"ERROR in 'append'\n");
+		fprintf(stderr,"Vetor cheio'\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	vec->itens[vec->tamanho] = *item;
+
+	vec->tamanho++;
+}
+
+void remove_item_vetor(ItensVetor *vec,Item *item){
+	if(vec->tamanho > 0) {
+		for(int i = 0;i < vec->tamanho;i++){
+			if(vec->itens[i].id == item->id) {
+				for(int j = i; j < vec->tamanho -1;j++) {
+//					printf("\nachou id:%d | item_id:%d",vec->itens[i].id,item->id);
+					vec->itens[j] = vec->itens[j+1];
+				}	
+				vec->tamanho--;
+			}
+		}
+		print_vetor_itens(vec);
+		
+	}
+}
+
+Final *criar_final(int _id, char *_descricao, char *_historia) {
+	Final *final = (Final*)calloc(1,sizeof(Final));
+	
+	final->id = _id;
+	final->itens = NULL;
+	final->descricao = _descricao;
+	final->historia = _historia;
+	
+	return final;
+}
+
+void apaga_final(Final **final_ref) {
+	Final *final = *final_ref;
+	free(final);
+	*final_ref = NULL;
+}
+
+FinaisVetor *criar_vetor_finais(int capacidade){
+	FinaisVetor *vec = (FinaisVetor*) calloc(1,sizeof(FinaisVetor));
+	
+	vec->tamanho = 0;
+	vec->capacidade = capacidade;
+	vec->finais = (Final*) calloc(capacidade,sizeof(Final));
+	
+	return vec;
+}
+
+void print_vetor_finais(FinaisVetor *vec){
+	for(int i = 0;i < vec->tamanho;i++){
+		printf("final:%s, indice:%d\n",vec->finais[i].descricao,i);
+	}
+}
+
+void apaga_vetor_finais(FinaisVetor **vec_ref){
+	FinaisVetor *vec = *vec_ref;
+	
+	free(vec->finais);
+	free(vec);
+	
+	*vec_ref = NULL;
+}
+
+void append_vetor_finais(FinaisVetor *vec, Final *final){
+	if(vec->tamanho == vec->capacidade){
+		fprintf(stderr,"ERROR in 'append'\n");
+		fprintf(stderr,"Vetor cheio'\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	vec->finais[vec->tamanho] = *final;
+
+	vec->tamanho++;
+}
+
+void remove_final_vetor(FinaisVetor *vec,Final *final){
+	if(vec->tamanho > 0) {
+		for(int i = 0;i < vec->tamanho;i++){
+			if(vec->finais[i].id == final->id) {
+				for(int j = i; j < vec->tamanho -1;j++) {
+//					printf("\nachou id:%d | item_id:%d",vec->itens[i].id,item->id);
+					vec->finais[j] = vec->finais[j+1];
+				}	
+				vec->tamanho--;
+			}
+		}
+		print_vetor_finais(vec);
+	}
+}
+
 
 TMouse *mousePos(){
 	TMouse *mouse = (TMouse*)malloc(sizeof(TMouse));
@@ -142,17 +311,9 @@ TMouse *mousePos(){
 		mouse->y = mousey();
 		clearmouseclick(WM_LBUTTONDOWN);
 	}
-	
 	return mouse;
 }
 
-struct TInventario {
-	int maxItens;
-	int qtdItens;
-	ItensVetor *itens;
-	int x;
-	int y;
-};
 
 TInventario *criar_inventario(int x, int y) {
 	TInventario *inventario = (TInventario*)calloc(1,sizeof(TInventario));
@@ -166,15 +327,7 @@ TInventario *criar_inventario(int x, int y) {
 	return inventario;
 }
 
-typedef struct saida {
-	int id;
-	char* nome;
-	int x;
-	int y;
-	int largura;
-	int altura;
-	FinaisVetor *finais;
-}Saida;
+
 
 Saida *criarSaida(int _id,char*_nome,int _x, int _y,int largura, int altura) {
 	Saida *saida = (Saida*)calloc(1,sizeof(Saida));
@@ -190,13 +343,7 @@ Saida *criarSaida(int _id,char*_nome,int _x, int _y,int largura, int altura) {
 	return saida;
 }
 
-struct TCamera {
-	int id;
-	int qtdItens;
-	void *imagem;
-	ItensVetor *itens;
-	Saida *saida;
-};
+
 //CRUD CAMERA
 
 TCamera *criarCamera(int _id,void*_imagem) {
@@ -289,45 +436,53 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 }
 
 void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
-
+	
+	POINT P;
+  	HWND janela;
+  	janela = GetForegroundWindow();
+  	
+  	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
+        if (ScreenToClient(janela, &P)) 
+  	
 	for(int i = 0;i<camera.itens->tamanho;i++) {
 		Item item = camera.itens->itens[i];
 
-		if (mouse->x < item.x + item.largura && 
-			mouse->x + mouse->largura > item.x && 
-			mouse->y < item.y + item.altura && 
-			mouse->y + mouse->altura > item.y) 
-		{
+		if (P.x < item.x + item.largura && P.x > item.x && P.y < item.y + item.altura && P.y > item.y) {
 			int largura_texto = textwidth(item.nome);
 			outtextxy(item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura,item.nome);
-//			animacao_texto(item.nome,8,item.x + ((item.largura/2) - (largura_texto/2)), item.y+item.altura);
 			delay(50);
-    		
-    		if(verificaMouseClick() == 1){
-    			pegarItem(&item,&camera,inventario);	
-			}	
+    		if(GetKeyState(VK_LBUTTON)&0x80){
+    			pegarItem(&item,&camera,inventario);
+			}
+
 		}
 	}
 	
 }
 
 void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
-//	POINT P;
-//	GetCursorPos(&P);
+	
+	POINT P;
+  	HWND janela;
+  	janela = GetForegroundWindow();
+  	
+  	if (GetCursorPos(&P))
+        if (ScreenToClient(janela, &P)) 
+  	
 	if(camera.saida != NULL) {
 		Saida *saida = camera.saida;
 
-		if (mouse->x < saida->x + saida->largura && 
-			mouse->x + mouse->largura > saida->x && 
-			mouse->y < saida->y + saida->altura && 
-			mouse->y + mouse->altura > saida->y) 
+		if (P.x < saida->x + saida->largura && 
+			P.x > saida->x && 
+			P.y < saida->y + saida->altura && 
+			P.y > saida->y) 
 		{
 			int largura_texto = textwidth(saida->nome);
 			int altura_texto = textheight(saida->nome);
 			outtextxy(saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y + ((saida->altura/2) - (altura_texto/2)),saida->nome);
-//			animacao_texto(saida->nome,8,saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y+saida->altura);
-//    		printf("clicou na saida:%s\n", saida->nome);
-    		if(verificaMouseClick() == 1){
+			
+			delay(50);
+    		if(GetKeyState(VK_LBUTTON)&0x80){
     			printf("clicou");
     			printf("clicou na saida:%s\n", saida->nome);	
 			}	
@@ -364,12 +519,15 @@ int gt1 = GetTickCount();
 //TItem *armadilha = criarItem(8,"armadilha","armadilha.bmp","armadilha_pb.bmp",400,600,50,100);
 
 int Conclusao() {
+	mciSendString("stop Insetos", NULL, 0, 0);
 		
 	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
 	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
 	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
+	
 	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
+	
 	int LarTela;
 	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
 	int gt2;
@@ -379,7 +537,6 @@ int Conclusao() {
  		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {	
 			animacao_texto(texto,LarTela,583,50,50);
-			
 		}
 	}
 }
@@ -391,16 +548,10 @@ int Comeca_Jogo(){
     int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	int LarTela,AltTela;
 	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
-	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
+	LarTela = 1280;
+	AltTela = 720;
 	
 	setlocale(LC_ALL,"Portuguese");
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,2);
@@ -412,6 +563,13 @@ int Comeca_Jogo(){
 //	inventario->itens = (TItem*)malloc(sizeof(TItem)*2); 
 
 	//sons
+	
+	mciSendString("open .\\Audios\\BugsSound.mp3 type MPEGVideo alias Insetos", NULL, 0, 0);
+	waveOutSetVolume(0,0x88888888);
+	mciSendString("play Insetos repeat", NULL, 0, 0);
+/*	mciSendString("seek Tema to start", NULL, 0, 0);
+	waveOutSetVolume(0,0x44444444);
+	mciSendString("play Tema repeat", NULL, 0, 0);*/
 	
 	
 	void*imagem = load_image("dinamite.bmp",100,100,200,200);
@@ -458,10 +616,10 @@ int Comeca_Jogo(){
 	
 	print_vetor_finais(saida0->finais);
 	
-	void *img_cam0 = load_image("quarto0.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam1 = load_image("quarto1.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam2 = load_image("quarto2.bmp",LarJogo,AltJogo,0,0);
-	void *img_cam3 = load_image("quarto3.bmp",LarJogo,AltJogo,0,0);
+	void *img_cam0 = load_image("quarto0.bmp",LarTela,AltTela,0,0);
+	void *img_cam1 = load_image("quarto1.bmp",LarTela,AltTela,0,0);
+	void *img_cam2 = load_image("quarto2.bmp",LarTela,AltTela,0,0);
+	void *img_cam3 = load_image("quarto3.bmp",LarTela,AltTela,0,0);
 	
 	TCamera *camera0 = criarCamera(0,img_cam0);
 	camera0->saida = saida0;
@@ -473,7 +631,7 @@ int Comeca_Jogo(){
 	
 	TCamera *camera3 = criarCamera(3,img_cam3);
  	
- 	TInventario *inventario = criar_inventario(LarJogo-100,0);
+ 	TInventario *inventario = criar_inventario(LarTela-100,0);
  	inventario->itens = criar_vetor_itens(2);
  	
  	TCamera *cameras = (TCamera*)malloc(sizeof(TCamera)*4);
@@ -528,48 +686,160 @@ int Comeca_Jogo(){
 	return 0;
 }
 
-int Menu(){
+int Menu();
 
+int Tutorial(){
 	int X,Y;
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
 	
-	setbkcolor(BLACK);
+	LarTela = 1280;
+	AltTela = 720;
+	
+	void *img_Menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
+	
 	setcolor(WHITE);
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,5);
-	outtextxy(200, 50, "Blend Scape");
-	
-	settextstyle(DEFAULT_FONT,HORIZ_DIR,3);
-	rectangle(200, 100,400,150);
-	outtextxy(220, 115, "Iniciar");
-	
-	rectangle(200, 200,400,250);
-	outtextxy(220, 215, "Sair");
+	rectangle(50, 800, 150, 850);
+
 	int gt2;
 	
 	while(true){
 		X = mousex();
 		Y = mousey();
+		
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
+//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));		
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
-				if(X > 200 && X < 400 && Y > 100 && Y < 150){
-					return Comeca_Jogo();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
-	
-			if(ismouseclick(WM_LBUTTONDOWN)){
-				if(X > 200 && X < 400 && Y > 200 && Y < 250){
-					return Conclusao();
+				if(X > 30 && X < 200 && Y > 650 && Y < 700){
+					return Menu();
 					break;
 				}
 				clearmouseclick(WM_LBUTTONDOWN);
 			}
 		}
 	}
+	return 0;
+}
+
+int Menu(){
+
+	int X,Y,tam1,tam2,tam3;
+	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	void *Iniciar, *Iniciar2; 
+    void *MascIniciar, *MascIniciar2;
+    void *Instrucoes;
+    void *MascInstrucoes;
+    void *Sair;
+    void *MascSair;
+    
+    bool BTNInicio = false;
+    
+    int Larg[3] = {206,330,142};
+    int Alt[3] = {74, 80, 74};
 	
+	int posX[3] = {540, 490, 575};
+	int posY[3] = {430, 525, 630};
+	
+	LarTela = 1280;
+	AltTela = 720;
+	
+	
+	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
+	waveOutSetVolume(0,0xFFFFFFFF);
+	mciSendString("play Tema repeat", NULL, 0, 0);
+	
+	tam1 = imagesize(0, 0, Larg[0], Alt[0]);
+    Iniciar = malloc(tam1);
+    MascIniciar = malloc(tam1);
+    readimagefile(".\\Hud\\Iniciar1.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], Iniciar);
+    readimagefile(".\\Hud\\Iniciar1WB.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], MascIniciar);
+    
+    tam1 = imagesize(0, 0, Larg[0], Alt[0]);
+    Iniciar2 = malloc(tam1);
+    MascIniciar2 = malloc(tam1);
+    readimagefile(".\\Hud\\Iniciar2.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], Iniciar2);
+    readimagefile(".\\Hud\\Iniciar2WB.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], MascIniciar2);
+    
+    
+    tam2 = imagesize(0, 0, Larg[1], Alt[1]);
+    Instrucoes = malloc(tam2);
+    MascInstrucoes = malloc(tam2);
+    readimagefile(".\\Hud\\Instrução1.bmp", 0, 0, Larg[1], Alt[1]);
+    getimage(0, 0, Larg[1], Alt[1], Instrucoes);
+    readimagefile(".\\Hud\\Instrução1WB.bmp", 0, 0, Larg[1], Alt[1]);
+    getimage(0, 0, Larg[1], Alt[1], MascInstrucoes);
+    
+    tam3 = imagesize(0, 0, Larg[2], Alt[2]);
+    Sair = malloc(tam3);
+    MascSair = malloc(tam3);
+    readimagefile(".\\Hud\\Sair1.bmp", 0, 0, Larg[2], Alt[2]);
+    getimage(0, 0, Larg[2], Alt[2], Sair);
+    readimagefile(".\\Hud\\Sair1WB.bmp", 0, 0, Larg[2], Alt[2]);
+    getimage(0, 0, Larg[2], Alt[2], MascSair);
+    
+    void *img_Menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
+    
+	if(BTNInicio){
+		putimage(posX[0],posY[0],MascIniciar2,AND_PUT);
+		putimage(posX[0],posY[0],Iniciar2,OR_PUT);
+	}
+	else{
+		putimage(posX[0],posY[0],MascIniciar,AND_PUT);
+		putimage(posX[0],posY[0],Iniciar,OR_PUT);
+	}
+	
+	putimage(posX[1],posY[1],MascInstrucoes,AND_PUT);
+	putimage(posX[1],posY[1],Instrucoes,OR_PUT);
+	
+	putimage(posX[2],posY[2],MascSair,AND_PUT);
+	putimage(posX[2],posY[2],Sair,OR_PUT);
+
+	int gt2;
+	
+	while(true){
+		X = mousex();
+		Y = mousey();
+		
+		gt2 = GetTickCount();
+		if(gt2 - gt1 > 1000/60) {
+//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
+			BTNInicio = false;
+			if(!(X > 540 && X < 750 && Y > 450 && Y < 510))
+				BTNInicio = true;
+			
+			if(ismouseclick(WM_LBUTTONDOWN)){
+		
+				if(X > 540 && X < 750 && Y > 450 && Y < 510){
+					mciSendString("stop Tema", NULL, 0, 0);
+					return Comeca_Jogo();
+					break;
+				}
+				clearmouseclick(WM_LBUTTONDOWN);
+			}
+			
+			if(ismouseclick(WM_LBUTTONDOWN)){
+		
+				if(X > 490 && X < 820 && Y > 525 && Y < 600){
+					return Tutorial();
+					break;
+				}
+				clearmouseclick(WM_LBUTTONDOWN);
+			}
+	
+			if(ismouseclick(WM_LBUTTONDOWN)){
+				if(X > 575 && X < 720 && Y > 610 && Y < 680){
+//					return Conclusao();
+					break;
+				}
+				clearmouseclick(WM_LBUTTONDOWN);
+			}
+		}
+	}
 	return 0;
 }
 
@@ -584,16 +854,8 @@ int Menu(){
 
 int main() {
 	
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
-	
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 100;
-	AltTela = GetSystemMetrics(SM_CYSCREEN) - 100;
-	
-	LarJogo = LarTela;
-	AltJogo = AltTela;
-	
-	xIniJogo = (LarTela - LarJogo) / 2;
-	yIniJogo = AltJogo;
+	int LarTela = 1280;
+	int AltTela = 720;
 	
 	setlocale(LC_ALL,"Portuguese");
 	initwindow(LarTela, AltTela,"meu jogo");
