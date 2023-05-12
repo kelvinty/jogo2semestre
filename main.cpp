@@ -168,6 +168,8 @@ Item *criar_item(int id, char *nome,void *imagem, void *mascara, int x, int y, i
 	return item;
 }
 
+
+
 void apaga_item(Item **item_ref) {
 	Item *item = *item_ref;
 	free(item);
@@ -722,8 +724,22 @@ int Tutorial(){
 
 int Menu(){
 
-	int X,Y;
+	int X,Y,tam1,tam2,tam3;
 	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+	void *Iniciar, *Iniciar2; 
+    void *MascIniciar, *MascIniciar2;
+    void *Instrucoes;
+    void *MascInstrucoes;
+    void *Sair;
+    void *MascSair;
+    
+    bool BTNInicio = false;
+    
+    int Larg[3] = {206,330,142};
+    int Alt[3] = {74, 80, 74};
+	
+	int posX[3] = {540, 490, 575};
+	int posY[3] = {430, 525, 630};
 	
 	LarTela = 1280;
 	AltTela = 720;
@@ -733,7 +749,55 @@ int Menu(){
 	waveOutSetVolume(0,0xFFFFFFFF);
 	mciSendString("play Tema repeat", NULL, 0, 0);
 	
-	void *img_Menu = load_image("HorrorHut3.bmp",LarTela,AltTela,0,0);
+	tam1 = imagesize(0, 0, Larg[0], Alt[0]);
+    Iniciar = malloc(tam1);
+    MascIniciar = malloc(tam1);
+    readimagefile(".\\Hud\\Iniciar1.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], Iniciar);
+    readimagefile(".\\Hud\\Iniciar1WB.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], MascIniciar);
+    
+    tam1 = imagesize(0, 0, Larg[0], Alt[0]);
+    Iniciar2 = malloc(tam1);
+    MascIniciar2 = malloc(tam1);
+    readimagefile(".\\Hud\\Iniciar2.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], Iniciar2);
+    readimagefile(".\\Hud\\Iniciar2WB.bmp", 0, 0, Larg[0], Alt[0]);
+    getimage(0, 0, Larg[0], Alt[0], MascIniciar2);
+    
+    
+    tam2 = imagesize(0, 0, Larg[1], Alt[1]);
+    Instrucoes = malloc(tam2);
+    MascInstrucoes = malloc(tam2);
+    readimagefile(".\\Hud\\Instrução1.bmp", 0, 0, Larg[1], Alt[1]);
+    getimage(0, 0, Larg[1], Alt[1], Instrucoes);
+    readimagefile(".\\Hud\\Instrução1WB.bmp", 0, 0, Larg[1], Alt[1]);
+    getimage(0, 0, Larg[1], Alt[1], MascInstrucoes);
+    
+    tam3 = imagesize(0, 0, Larg[2], Alt[2]);
+    Sair = malloc(tam3);
+    MascSair = malloc(tam3);
+    readimagefile(".\\Hud\\Sair1.bmp", 0, 0, Larg[2], Alt[2]);
+    getimage(0, 0, Larg[2], Alt[2], Sair);
+    readimagefile(".\\Hud\\Sair1WB.bmp", 0, 0, Larg[2], Alt[2]);
+    getimage(0, 0, Larg[2], Alt[2], MascSair);
+    
+    void *img_Menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
+    
+	if(BTNInicio){
+		putimage(posX[0],posY[0],MascIniciar2,AND_PUT);
+		putimage(posX[0],posY[0],Iniciar2,OR_PUT);
+	}
+	else{
+		putimage(posX[0],posY[0],MascIniciar,AND_PUT);
+		putimage(posX[0],posY[0],Iniciar,OR_PUT);
+	}
+	
+	putimage(posX[1],posY[1],MascInstrucoes,AND_PUT);
+	putimage(posX[1],posY[1],Instrucoes,OR_PUT);
+	
+	putimage(posX[2],posY[2],MascSair,AND_PUT);
+	putimage(posX[2],posY[2],Sair,OR_PUT);
 
 	int gt2;
 	
@@ -744,9 +808,13 @@ int Menu(){
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
 //			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
+			BTNInicio = false;
+			if(!(X > 540 && X < 750 && Y > 450 && Y < 510))
+				BTNInicio = true;
+			
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
-				if(X > 645 && X < 800 && Y > 490 && Y < 550){
+				if(X > 540 && X < 750 && Y > 450 && Y < 510){
 					mciSendString("stop Tema", NULL, 0, 0);
 					return Comeca_Jogo();
 					break;
@@ -756,7 +824,7 @@ int Menu(){
 			
 			if(ismouseclick(WM_LBUTTONDOWN)){
 		
-				if(X > 590 && X < 850 && Y > 570 && Y < 630){
+				if(X > 490 && X < 820 && Y > 525 && Y < 600){
 					return Tutorial();
 					break;
 				}
@@ -764,8 +832,7 @@ int Menu(){
 			}
 	
 			if(ismouseclick(WM_LBUTTONDOWN)){
-				if(X > 660 && X < 785 && Y > 650 && Y < 705){
-					mciSendString("stop Tema", NULL, 0, 0);
+				if(X > 575 && X < 720 && Y > 610 && Y < 680){
 //					return Conclusao();
 					break;
 				}
