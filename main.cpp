@@ -17,6 +17,24 @@ struct TMouse{
 	int altura;
 };
 
+typedef struct botao{
+	char *nome;
+	int x;
+	int y;
+	int largura;
+	int altura;
+	bool clicado;
+	void* imagem;
+	void* mascara;
+} Botao;
+
+typedef struct vetor_botoes{
+	int capacidade;
+	int tamanho;
+	Botao *botoes;
+} BotoesVetor; 
+
+
 typedef struct item{
 	int id;
 	char *nome;
@@ -229,6 +247,58 @@ void remove_item_vetor(ItensVetor *vec,Item *item){
 	}
 }
 
+Botao *criar_botao(char*nome, void *imagem, void *mascara, int x, int y, int largura, int altura) {
+	Botao *botao = (Botao*)malloc(sizeof(Botao));
+	
+	botao->nome = nome;
+	botao->imagem = imagem;
+	botao->mascara = mascara;
+	botao->x = x;
+	botao->y = y;
+	botao->largura = largura;
+	botao->altura = altura;
+	
+	return botao;
+}
+
+BotoesVetor *criar_vetor_botoes(int capacidade){
+	BotoesVetor *vec = (BotoesVetor*) calloc(1,sizeof(BotoesVetor));
+	
+	vec->tamanho = 0;
+	vec->capacidade = capacidade;
+	vec->botoes = (Botao*) calloc(capacidade,sizeof(Botao));
+	
+	return vec;
+}
+
+void append_vetor_botoes(BotoesVetor *vec, Botao *botao){
+	if(vec->tamanho == vec->capacidade){
+		fprintf(stderr,"ERROR in 'append'\n");
+		fprintf(stderr,"Vetor cheio'\n");
+		exit(EXIT_FAILURE);
+	}
+	
+	vec->botoes[vec->tamanho] = *botao;
+
+	vec->tamanho++;
+}
+
+void apaga_vetor_botoes(BotoesVetor **vec_ref){
+	BotoesVetor *vec = *vec_ref;
+	
+	free(vec->botoes);
+	free(vec);
+	
+	*vec_ref = NULL;
+}
+
+
+void apaga_botao(Botao **botao_ref) {
+	Botao *botao = *botao_ref;
+	free(botao);
+	*botao_ref = NULL;
+}
+
 Final *criar_final(int _id, char *_descricao, char *_historia) {
 	Final *final = (Final*)calloc(1,sizeof(Final));
 	
@@ -395,6 +465,21 @@ void mostrarItensInventario(const TInventario *inventario) {
 	}
 }
 
+void mostrarBotoes(const BotoesVetor *botoes) {
+	for(int i = 0;i< botoes->tamanho;i++){
+		Botao botao = botoes->botoes[i];
+		putimage(botao.x, botao.y, botao.mascara, AND_PUT);
+		putimage(botao.x, botao.y, botao.imagem, OR_PUT);
+	}
+	
+}
+
+void mostrarBotao(const Botao *botao) {
+	putimage(botao->x, botao->y, botao->mascara, AND_PUT);
+	putimage(botao->x, botao->y, botao->imagem, OR_PUT);
+}
+
+
 
 void removeItensCamera(TCamera *camera) {
 	for(int i =0;i<camera->qtdItens;i++) {
@@ -433,6 +518,35 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 		}
 	}
 
+}
+int comecaJogo();
+int Tutorial();
+
+void colisaoMouseBotao(BotoesVetor* botoes){
+	POINT P;
+  	HWND janela;
+  	janela = GetForegroundWindow();
+  	
+  	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
+        if (ScreenToClient(janela, &P)) 
+  	
+	for(int i = 0;i<botoes->tamanho;i++) {
+		Botao botao = botoes->botoes[i];
+
+		if (P.x < botao.x + botao.largura && P.x > botao.x && P.y < botao.y + botao.altura && P.y > botao.y) {
+			bar(botao.x,botao.y + (botao.altura - 5),botao.x+botao.largura,botao.y+botao.altura);
+			delay(50);
+    		if(GetKeyState(VK_LBUTTON)&0x80){
+    			if(botao.nome == "iniciar"){
+    				comecaJogo();
+				} else if(botao.nome == "intro") {
+					Tutorial();
+				} else if (botao.nome == "sair") {
+					printf("clicou no sair");
+				}
+			}
+		}
+	}
 }
 
 void colisaoMouseItens(TMouse *mouse,TCamera camera, TInventario *inventario) {
@@ -482,6 +596,7 @@ void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
 			outtextxy(saida->x + ((saida->largura/2) - (largura_texto/2)), saida->y + ((saida->altura/2) - (altura_texto/2)),saida->nome);
 			
 			delay(50);
+			
     		if(GetKeyState(VK_LBUTTON)&0x80){
     			printf("clicou");
     			printf("clicou na saida:%s\n", saida->nome);	
@@ -541,7 +656,7 @@ int Conclusao() {
 	}
 }
 
-int Comeca_Jogo(){
+int comecaJogo(){
 	
 	int gt2;
 	
@@ -689,34 +804,36 @@ int Comeca_Jogo(){
 int Menu();
 
 int Tutorial(){
-	int X,Y;
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
+
+	int LarTela,AltTela;
 	
 	LarTela = 1280;
 	AltTela = 720;
 	
 	void *img_Menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
 	
-	setcolor(WHITE);
-	rectangle(50, 800, 150, 850);
-
+//	Botao *botao_voltar = criar_botao("voltar",0,0,30,AltTela - 50,100,50);
+	
 	int gt2;
 	
 	while(true){
-		X = mousex();
-		Y = mousey();
 		
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));		
-			if(ismouseclick(WM_LBUTTONDOWN)){
-		
-				if(X > 30 && X < 200 && Y > 650 && Y < 700){
-					return Menu();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
+			if(pg == 1) pg = 2; else pg = 1;
+	 		setvisualpage(pg);	
+			cleardevice();
+			putimage(0,0,img_Menu,COPY_PUT);
+//			mostrarBotao(botao_voltar);
+//			if(ismouseclick(WM_LBUTTONDOWN)){
+//			
+//				if(X > 30 && X < 200 && Y > 650 && Y < 700){
+//					return Menu();
+//					break;
+//				}
+//				clearmouseclick(WM_LBUTTONDOWN);
+//			}
+			setactivepage(pg);		
 		}
 	}
 	return 0;
@@ -724,121 +841,60 @@ int Tutorial(){
 
 int Menu(){
 
-	int X,Y,tam1,tam2,tam3;
-	int LarTela,LarJogo,AltTela,AltJogo,xIniJogo,yIniJogo;
-	void *Iniciar, *Iniciar2; 
-    void *MascIniciar, *MascIniciar2;
-    void *Instrucoes;
-    void *MascInstrucoes;
-    void *Sair;
-    void *MascSair;
+	int pg;
+	int LarTela,AltTela;
     
-    bool BTNInicio = false;
-    
-    int Larg[3] = {206,330,142};
-    int Alt[3] = {74, 80, 74};
-	
-	int posX[3] = {540, 490, 575};
-	int posY[3] = {430, 525, 630};
-	
-	LarTela = 1280;
+    LarTela = 1280;
 	AltTela = 720;
+
 	
+    
+    void *botao1_img = load_image(".\\Hud\\Iniciar1.bmp",206,74,0,0);
+	void *botao1_mask = load_image(".\\Hud\\Iniciar1WB.bmp",206,74,0,0);
+    
+    void *botao2_img = load_image(".\\Hud\\Iniciar2.bmp",100,50,0,0);
+	void *botao2_mask = load_image(".\\Hud\\Iniciar2WB.bmp",100,50,0,0);
+	
+	void *botao3_img = load_image(".\\Hud\\Instrução1.bmp",330,80,0,0);
+	void *botao3_mask = load_image(".\\Hud\\Instrução1WB.bmp",330,80,0,0);
+	
+	void *botao4_img = load_image(".\\Hud\\Sair1.bmp",142,74,0,0);
+	void *botao4_mask = load_image(".\\Hud\\Sair1WB.bmp",142,74,0,0);
+    
+    Botao *botao_iniciar = criar_botao("iniciar",botao1_img,botao1_mask,LarTela/2 - 206/2,AltTela/2 + 75,206,74);
+
+    Botao *botao_intro = criar_botao("intro",botao3_img,botao3_mask,LarTela/2 - 330/2,AltTela/2 +150,330,80); 
+
+    Botao *botao_sair = criar_botao("sair",botao4_img,botao4_mask,LarTela/2 - 142/2,AltTela/2+240,142,74); 
+	
+	BotoesVetor *botoes = criar_vetor_botoes(3);
+	
+	append_vetor_botoes(botoes,botao_iniciar);
+	append_vetor_botoes(botoes,botao_intro);
+	append_vetor_botoes(botoes,botao_sair);
 	
 	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
 	waveOutSetVolume(0,0xFFFFFFFF);
 	mciSendString("play Tema repeat", NULL, 0, 0);
 	
-	tam1 = imagesize(0, 0, Larg[0], Alt[0]);
-    Iniciar = malloc(tam1);
-    MascIniciar = malloc(tam1);
-    readimagefile(".\\Hud\\Iniciar1.bmp", 0, 0, Larg[0], Alt[0]);
-    getimage(0, 0, Larg[0], Alt[0], Iniciar);
-    readimagefile(".\\Hud\\Iniciar1WB.bmp", 0, 0, Larg[0], Alt[0]);
-    getimage(0, 0, Larg[0], Alt[0], MascIniciar);
-    
-    tam1 = imagesize(0, 0, Larg[0], Alt[0]);
-    Iniciar2 = malloc(tam1);
-    MascIniciar2 = malloc(tam1);
-    readimagefile(".\\Hud\\Iniciar2.bmp", 0, 0, Larg[0], Alt[0]);
-    getimage(0, 0, Larg[0], Alt[0], Iniciar2);
-    readimagefile(".\\Hud\\Iniciar2WB.bmp", 0, 0, Larg[0], Alt[0]);
-    getimage(0, 0, Larg[0], Alt[0], MascIniciar2);
-    
-    
-    tam2 = imagesize(0, 0, Larg[1], Alt[1]);
-    Instrucoes = malloc(tam2);
-    MascInstrucoes = malloc(tam2);
-    readimagefile(".\\Hud\\Instrução1.bmp", 0, 0, Larg[1], Alt[1]);
-    getimage(0, 0, Larg[1], Alt[1], Instrucoes);
-    readimagefile(".\\Hud\\Instrução1WB.bmp", 0, 0, Larg[1], Alt[1]);
-    getimage(0, 0, Larg[1], Alt[1], MascInstrucoes);
-    
-    tam3 = imagesize(0, 0, Larg[2], Alt[2]);
-    Sair = malloc(tam3);
-    MascSair = malloc(tam3);
-    readimagefile(".\\Hud\\Sair1.bmp", 0, 0, Larg[2], Alt[2]);
-    getimage(0, 0, Larg[2], Alt[2], Sair);
-    readimagefile(".\\Hud\\Sair1WB.bmp", 0, 0, Larg[2], Alt[2]);
-    getimage(0, 0, Larg[2], Alt[2], MascSair);
-    
-    void *img_Menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
-    
-	if(BTNInicio){
-		putimage(posX[0],posY[0],MascIniciar2,AND_PUT);
-		putimage(posX[0],posY[0],Iniciar2,OR_PUT);
-	}
-	else{
-		putimage(posX[0],posY[0],MascIniciar,AND_PUT);
-		putimage(posX[0],posY[0],Iniciar,OR_PUT);
-	}
-	
-	putimage(posX[1],posY[1],MascInstrucoes,AND_PUT);
-	putimage(posX[1],posY[1],Instrucoes,OR_PUT);
-	
-	putimage(posX[2],posY[2],MascSair,AND_PUT);
-	putimage(posX[2],posY[2],Sair,OR_PUT);
+    void *img_menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
 
 	int gt2;
-	
+	POINT P;
+	HWND janela;
+	janela = GetForegroundWindow();
 	while(true){
-		X = mousex();
-		Y = mousey();
-		
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
-//			printf("clicou: %d",ismouseclick(WM_LBUTTONDOWN));
-			BTNInicio = false;
-			if(!(X > 540 && X < 750 && Y > 450 && Y < 510))
-				BTNInicio = true;
-			
-			if(ismouseclick(WM_LBUTTONDOWN)){
-		
-				if(X > 540 && X < 750 && Y > 450 && Y < 510){
-					mciSendString("stop Tema", NULL, 0, 0);
-					return Comeca_Jogo();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
-			
-			if(ismouseclick(WM_LBUTTONDOWN)){
-		
-				if(X > 490 && X < 820 && Y > 525 && Y < 600){
-					return Tutorial();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
-	
-			if(ismouseclick(WM_LBUTTONDOWN)){
-				if(X > 575 && X < 720 && Y > 610 && Y < 680){
-//					return Conclusao();
-					break;
-				}
-				clearmouseclick(WM_LBUTTONDOWN);
-			}
+			if(pg == 1) pg = 2; else pg = 1;
+	 		setvisualpage(pg);
+	 		cleardevice();
+			putimage(0,0,img_menu,COPY_PUT);
+			mostrarBotoes(botoes);
+			colisaoMouseBotao(botoes);
+			setactivepage(pg);
 		}
+		
 	}
 	return 0;
 }
