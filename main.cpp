@@ -95,6 +95,12 @@ struct TCamera {
 int pg = 1;
 int last_time = clock();
 
+//Loops do jogo;
+int comecaJogo();
+int Tutorial();
+int Menu();
+int Conclusao();
+
 void* load_image(const char *endereco, int largura, int altura, int x, int y){
 	int aux = imagesize(x,y,largura,altura);
 	void*img = malloc(aux);
@@ -139,9 +145,12 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 		strcpy(linha[k], str);
 	}
 
+	mciSendString("open .\\Audios\\Teclado.mp3 type MPEGVideo alias Teclado", NULL, 0, 0);
+	waveOutSetVolume(0,0x88888888);
+	mciSendString("play Teclado repeat", NULL, 0, 0);
    	for (int i = 0; i < qtdLinhas;i++) {
    		if(pg == 1) pg = 2; else pg = 1;
-	 	setvisualpage(pg);
+//	 	setvisualpage(pg);
 
    		for(int l = 0; l < qtdLetras;){
    			if(pg == 1) pg = 2; else pg = 1;
@@ -153,7 +162,7 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 			l++;
 		}
         outtextxy(pos_x, pos_y + (i*alturaString), linha[i]);
-    	setactivepage(pg);
+//    	setactivepage(pg);
 	}
 	
 	free(str);
@@ -161,10 +170,12 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 	for(int i = 0; i < qtdLinhas; i++) {
 		free(linha[i]);	
 	}
+	
+	mciSendString("stop Teclado", NULL, 0, 0);
+	
 	free(linha);
 	linha = NULL;
 	free(newStr);
-
 }
 
 void deleteImage(void *image){
@@ -474,6 +485,26 @@ void mostrarBotoes(const BotoesVetor *botoes) {
 	
 }
 
+void mostraTempo(int tempo){
+	
+	int last_time = GetTickCount();
+	char str[20];
+	int tempo_limite = 15;
+	int segundos = (last_time - tempo)/1000;
+	
+	if(segundos > 15) {
+		segundos = 15;
+	}
+	
+	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
+	sprintf(str,"%d",tempo_limite - segundos);
+	int tamanho_texto = textwidth(str);
+	outtextxy(1280/2 - tamanho_texto/2 ,0,str);
+
+	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,2);
+	
+}
+
 void mostrarBotao(const Botao *botao) {
 	putimage(botao->x, botao->y, botao->mascara, AND_PUT);
 	putimage(botao->x, botao->y, botao->imagem, OR_PUT);
@@ -519,13 +550,16 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 	}
 
 }
-int comecaJogo();
-int Tutorial();
 
 void colisaoMouseBotao(BotoesVetor* botoes){
 	POINT P;
   	HWND janela;
   	janela = GetForegroundWindow();
+
+  	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
+	waveOutSetVolume(0,0xFFFFFFFF);
+	mciSendString("play Tema repeat", NULL, 0, 0);
+
   	
   	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
         if (ScreenToClient(janela, &P)) 
@@ -534,15 +568,22 @@ void colisaoMouseBotao(BotoesVetor* botoes){
 		Botao botao = botoes->botoes[i];
 
 		if (P.x < botao.x + botao.largura && P.x > botao.x && P.y < botao.y + botao.altura && P.y > botao.y) {
-			bar(botao.x,botao.y + (botao.altura - 5),botao.x+botao.largura,botao.y+botao.altura);
+
+			bar(botao.x,botao.y + (botao.altura - 2.5),botao.x+botao.largura,botao.y+botao.altura);
 			delay(50);
     		if(GetKeyState(VK_LBUTTON)&0x80){
     			if(botao.nome == "iniciar"){
+    				mciSendString("stop Tema", NULL, 0, 0);
     				comecaJogo();
 				} else if(botao.nome == "intro") {
+					delay(200);
 					Tutorial();
-				} else if (botao.nome == "sair") {
-					printf("clicou no sair");
+				} else if(botao.nome == "voltar") {
+					delay(200);
+					Menu();
+				}  else if (botao.nome == "sair") {
+					delay(200);
+					printf("clicou no sair\n");
 				}
 			}
 		}
@@ -599,7 +640,8 @@ void colisaoMouseSaidas(TMouse *mouse,TCamera camera, TInventario *inventario) {
 			
     		if(GetKeyState(VK_LBUTTON)&0x80){
     			printf("clicou");
-    			printf("clicou na saida:%s\n", saida->nome);	
+    			printf("clicou na saida:%s\n", saida->nome);
+				delay(500);	
 			}	
 		}	
 	}	
@@ -635,31 +677,33 @@ int gt1 = GetTickCount();
 
 int Conclusao() {
 	mciSendString("stop Insetos", NULL, 0, 0);
-		
-	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
 	
-	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	
 	int LarTela;
-	LarTela = GetSystemMetrics(SM_CXSCREEN) - 500;
+	LarTela = 1100;
 	int gt2;
 	char *texto = "Você continua a procurar pistas e descobre que a chave do carro que você usou para chegar até a cabana está desaparecida. Sem a chave, você não conseguirá sair dali. De repente, você escuta um som estranho vindo de um dos quartos. Quando entra, vê que a chave do carro está em cima da cama. Ao tentar sair da cabana, você percebe que algo está bloqueando a porta. Então, decide usar o galão de gasolina e o fósforo para criar uma distração e fugir. Depois de algumas tentativas, você finalmente consegue. Quando olha para trás, vê a cabana em chamas e percebe que não estava sozinho ali.";
 	
+	animacao_texto(texto,LarTela,583,50,50);
+	delay(2000);
 	while(true) {
  		gt2 = GetTickCount();
+ 		
 		if(gt2 - gt1 > 1000/60) {	
-			animacao_texto(texto,LarTela,583,50,50);
+			if(pg == 1) pg = 2; else pg = 1;
+ 			setvisualpage(pg);
+ 			cleardevice();
+			
+			setactivepage(pg);
 		}
 	}
+	return 0;
 }
 
 int comecaJogo(){
-	
+	int tempo = GetTickCount();
 	int gt2;
-	
     int tecla = 0;
 	int camera_atual = 0;
 	int qtdCam = 0;
@@ -687,15 +731,15 @@ int comecaJogo(){
 	mciSendString("play Tema repeat", NULL, 0, 0);*/
 	
 	
-	void*imagem = load_image("dinamite.bmp",100,100,200,200);
-	void*mascara = load_image("dinamite_pb.bmp",100,100,200,200);
+	void* item1_img = load_image("dinamite.bmp",100,100,200,200);
+	void* item1_mask = load_image("dinamite_pb.bmp",100,100,200,200);
 	
-	Item *dinamite1 = criar_item(0,"dinamite1",imagem,mascara,200,200,100,100);
-    Item *dinamite2 = criar_item(1,"dinamite2",imagem,mascara,300,200,100,100);
-    Item *dinamite3 = criar_item(2,"dinamite3",imagem,mascara,400,200,100,100);
-    Item *dinamite4 = criar_item(3,"dinamite4",imagem,mascara,500,200,100,100);
-    Item *dinamite5 = criar_item(4,"dinamite5",imagem,mascara,600,200,100,100);
-    Item *dinamite6 = criar_item(5,"dinamite6",imagem,mascara,700,200,100,100);
+	Item *dinamite1 = criar_item(0,"dinamite1",item1_img,item1_mask,200,200,100,100);
+    Item *dinamite2 = criar_item(1,"dinamite2",item1_img,item1_mask,300,200,100,100);
+    Item *dinamite3 = criar_item(2,"dinamite3",item1_img,item1_mask,400,200,100,100);
+    Item *dinamite4 = criar_item(3,"dinamite4",item1_img,item1_mask,500,200,100,100);
+    Item *dinamite5 = criar_item(4,"dinamite5",item1_img,item1_mask,600,200,100,100);
+    Item *dinamite6 = criar_item(5,"dinamite6",item1_img,item1_mask,700,200,100,100);
     //variaveis do jogo
     
 	Final *final0 = criar_final(0,"fuga de carro","Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque id dignissim quam. Proin sit amet pulvinar nulla, et sagittis magna. Curabitur congue consectetur sollicitudin. Suspendisse aliquam lorem a est tincidunt semper. Vestibulum sed hendrerit elit. Praesent lorem ex, lacinia vel");
@@ -784,13 +828,28 @@ int comecaJogo(){
 			mostrarInventario(inventario);
 			mostrarItensInventario(inventario);
 			mostrarSaidasCamera(&cameras[camera_atual]);
+			mostraTempo(tempo);
 			colisaoMouseItens(mousePos(),cameras[camera_atual],inventario);
 			colisaoMouseSaidas(mousePos(),cameras[camera_atual],inventario);
-			
+			printf("tempo de jogo: %d\n",((gt2 - tempo) /1000));
+			if(((gt2 - tempo) /1000) > 15) {
+				Conclusao();
+			}
  			setactivepage(pg);
 		}
 		
 	}
+	
+	deleteImage(img_cam0);
+	deleteImage(img_cam1);
+	deleteImage(img_cam2);
+	deleteImage(img_cam3);
+
+	
+	deleteImage(item1_img);
+	deleteImage(item1_mask);
+	
+	apaga_vetor_itens(&final0->itens);
 	
 	apaga_vetor_finais(&saida0->finais);
 	apaga_vetor_finais(&saida1->finais);
@@ -801,8 +860,6 @@ int comecaJogo(){
 	return 0;
 }
 
-int Menu();
-
 int Tutorial(){
 
 	int LarTela,AltTela;
@@ -810,7 +867,16 @@ int Tutorial(){
 	LarTela = 1280;
 	AltTela = 720;
 	
-	void *img_Menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
+	void *botao1_img = load_image(".\\Hud\\Voltar.bmp",208,84,0,0);
+	void *botao1_mask = load_image(".\\Hud\\VoltarWB.bmp",208,84,0,0);
+	
+	Botao *botao_voltar = criar_botao("voltar",botao1_img,botao1_mask,50,600,208,84);
+	
+	BotoesVetor *botoes = criar_vetor_botoes(1);
+	
+	append_vetor_botoes(botoes,botao_voltar);
+	
+	void *img_menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
 	
 //	Botao *botao_voltar = criar_botao("voltar",0,0,30,AltTela - 50,100,50);
 	
@@ -821,21 +887,19 @@ int Tutorial(){
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
 			if(pg == 1) pg = 2; else pg = 1;
+
 	 		setvisualpage(pg);	
 			cleardevice();
-			putimage(0,0,img_Menu,COPY_PUT);
-//			mostrarBotao(botao_voltar);
-//			if(ismouseclick(WM_LBUTTONDOWN)){
-//			
-//				if(X > 30 && X < 200 && Y > 650 && Y < 700){
-//					return Menu();
-//					break;
-//				}
-//				clearmouseclick(WM_LBUTTONDOWN);
-//			}
+	
+			putimage(0,0,img_menu,COPY_PUT);
+			mostrarBotoes(botoes);
+			colisaoMouseBotao(botoes);
+
 			setactivepage(pg);		
 		}
 	}
+	
+	deleteImage(img_menu);
 	return 0;
 }
 
@@ -846,8 +910,6 @@ int Menu(){
     
     LarTela = 1280;
 	AltTela = 720;
-
-	
     
     void *botao1_img = load_image(".\\Hud\\Iniciar1.bmp",206,74,0,0);
 	void *botao1_mask = load_image(".\\Hud\\Iniciar1WB.bmp",206,74,0,0);
@@ -872,17 +934,15 @@ int Menu(){
 	append_vetor_botoes(botoes,botao_iniciar);
 	append_vetor_botoes(botoes,botao_intro);
 	append_vetor_botoes(botoes,botao_sair);
-	
-	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
-	waveOutSetVolume(0,0xFFFFFFFF);
-	mciSendString("play Tema repeat", NULL, 0, 0);
-	
-    void *img_menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
+
+    void *img_menu = load_image("HorrorHut.bmp",LarTela,AltTela,0,0);
 
 	int gt2;
+	
 	POINT P;
 	HWND janela;
 	janela = GetForegroundWindow();
+	
 	while(true){
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
@@ -894,8 +954,19 @@ int Menu(){
 			colisaoMouseBotao(botoes);
 			setactivepage(pg);
 		}
-		
 	}
+	
+	deleteImage(botao1_img);
+	deleteImage(botao2_img);
+	deleteImage(botao3_img);
+	deleteImage(botao4_img);
+	
+	deleteImage(botao1_mask);
+	deleteImage(botao2_mask);
+	deleteImage(botao3_mask);
+	deleteImage(botao4_mask);
+	
+	apaga_vetor_botoes(&botoes);
 	return 0;
 }
 
