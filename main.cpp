@@ -521,11 +521,16 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 }
 int comecaJogo();
 int Tutorial();
+int Menu();
 
 void colisaoMouseBotao(BotoesVetor* botoes){
 	POINT P;
   	HWND janela;
   	janela = GetForegroundWindow();
+  	
+  	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
+	waveOutSetVolume(0,0xFFFFFFFF);
+	mciSendString("play Tema repeat", NULL, 0, 0);
   	
   	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
         if (ScreenToClient(janela, &P)) 
@@ -534,15 +539,19 @@ void colisaoMouseBotao(BotoesVetor* botoes){
 		Botao botao = botoes->botoes[i];
 
 		if (P.x < botao.x + botao.largura && P.x > botao.x && P.y < botao.y + botao.altura && P.y > botao.y) {
-			bar(botao.x,botao.y + (botao.altura - 5),botao.x+botao.largura,botao.y+botao.altura);
+			bar(botao.x,botao.y + (botao.altura - 2.5),botao.x+botao.largura,botao.y+botao.altura);
 			delay(50);
     		if(GetKeyState(VK_LBUTTON)&0x80){
     			if(botao.nome == "iniciar"){
+    				mciSendString("stop Tema", NULL, 0, 0);
     				comecaJogo();
 				} else if(botao.nome == "intro") {
 					Tutorial();
 				} else if (botao.nome == "sair") {
 					printf("clicou no sair");
+				}
+				else if(botao.nome == "voltar"){
+					Menu();
 				}
 			}
 		}
@@ -801,8 +810,6 @@ int comecaJogo(){
 	return 0;
 }
 
-int Menu();
-
 int Tutorial(){
 
 	int LarTela,AltTela;
@@ -810,7 +817,16 @@ int Tutorial(){
 	LarTela = 1280;
 	AltTela = 720;
 	
-	void *img_Menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
+	void *botao1_img = load_image(".\\Hud\\Voltar.bmp",208,84,0,0);
+	void *botao1_mask = load_image(".\\Hud\\VoltarWB.bmp",208,84,0,0);
+	
+	Botao *botao_voltar = criar_botao("voltar",botao1_img,botao1_mask,50,600,208,84);
+	
+	BotoesVetor *botoes = criar_vetor_botoes(4);
+	
+	append_vetor_botoes(botoes,botao_voltar);
+	
+	void *img_menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
 	
 //	Botao *botao_voltar = criar_botao("voltar",0,0,30,AltTela - 50,100,50);
 	
@@ -821,18 +837,11 @@ int Tutorial(){
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
 			if(pg == 1) pg = 2; else pg = 1;
-	 		setvisualpage(pg);	
-			cleardevice();
-			putimage(0,0,img_Menu,COPY_PUT);
-//			mostrarBotao(botao_voltar);
-//			if(ismouseclick(WM_LBUTTONDOWN)){
-//			
-//				if(X > 30 && X < 200 && Y > 650 && Y < 700){
-//					return Menu();
-//					break;
-//				}
-//				clearmouseclick(WM_LBUTTONDOWN);
-//			}
+	 		setvisualpage(pg);
+	 		cleardevice();
+			putimage(0,0,img_menu,COPY_PUT);
+			mostrarBotoes(botoes);
+			colisaoMouseBotao(botoes);
 			setactivepage(pg);		
 		}
 	}
@@ -873,11 +882,7 @@ int Menu(){
 	append_vetor_botoes(botoes,botao_intro);
 	append_vetor_botoes(botoes,botao_sair);
 	
-	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
-	waveOutSetVolume(0,0xFFFFFFFF);
-	mciSendString("play Tema repeat", NULL, 0, 0);
-	
-    void *img_menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
+    void *img_menu = load_image("HorrorHut.bmp",LarTela,AltTela,0,0);
 
 	int gt2;
 	POINT P;
