@@ -145,6 +145,9 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 		strcpy(linha[k], str);
 	}
 
+	mciSendString("open .\\Audios\\Teclado.mp3 type MPEGVideo alias Teclado", NULL, 0, 0);
+	waveOutSetVolume(0,0x88888888);
+	mciSendString("play Teclado repeat", NULL, 0, 0);
    	for (int i = 0; i < qtdLinhas;i++) {
    		if(pg == 1) pg = 2; else pg = 1;
 //	 	setvisualpage(pg);
@@ -167,10 +170,12 @@ void animacao_texto(char *texto,int quebra_linha,int qtd,int pos_x,int pos_y) {
 	for(int i = 0; i < qtdLinhas; i++) {
 		free(linha[i]);	
 	}
+	
+	mciSendString("stop Teclado", NULL, 0, 0);
+	
 	free(linha);
 	linha = NULL;
 	free(newStr);
-
 }
 
 void deleteImage(void *image){
@@ -545,25 +550,16 @@ void pegarItem(Item *_item, TCamera *camera, TInventario *inventario){
 	}
 
 }
-<<<<<<< HEAD
-
-=======
-int comecaJogo();
-int Tutorial();
-int Menu();
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
 
 void colisaoMouseBotao(BotoesVetor* botoes){
 	POINT P;
   	HWND janela;
   	janela = GetForegroundWindow();
-  	
-<<<<<<< HEAD
-=======
+
   	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
 	waveOutSetVolume(0,0xFFFFFFFF);
 	mciSendString("play Tema repeat", NULL, 0, 0);
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
+
   	
   	if (GetCursorPos(&P)) // captura a posição do mouse. A variável P é carregada com coordenadas físicas de tela
         if (ScreenToClient(janela, &P)) 
@@ -572,18 +568,12 @@ void colisaoMouseBotao(BotoesVetor* botoes){
 		Botao botao = botoes->botoes[i];
 
 		if (P.x < botao.x + botao.largura && P.x > botao.x && P.y < botao.y + botao.altura && P.y > botao.y) {
-<<<<<<< HEAD
-			bar(botao.x,botao.y + (botao.altura - 5),botao.x+botao.largura,botao.y+botao.altura);
-    		if(GetKeyState(VK_LBUTTON)&0x80){
-    			if(botao.nome == "iniciar"){
-    				delay(200);
-=======
+
 			bar(botao.x,botao.y + (botao.altura - 2.5),botao.x+botao.largura,botao.y+botao.altura);
 			delay(50);
     		if(GetKeyState(VK_LBUTTON)&0x80){
     			if(botao.nome == "iniciar"){
     				mciSendString("stop Tema", NULL, 0, 0);
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
     				comecaJogo();
 				} else if(botao.nome == "intro") {
 					delay(200);
@@ -594,9 +584,6 @@ void colisaoMouseBotao(BotoesVetor* botoes){
 				}  else if (botao.nome == "sair") {
 					delay(200);
 					printf("clicou no sair\n");
-				}
-				else if(botao.nome == "voltar"){
-					Menu();
 				}
 			}
 		}
@@ -690,12 +677,7 @@ int gt1 = GetTickCount();
 
 int Conclusao() {
 	mciSendString("stop Insetos", NULL, 0, 0);
-		
-	mciSendString("open .\\assets\\sons\\tecla1.mp3 type MPEGVideo alias tecla1",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla2.mp3 type MPEGVideo alias tecla2",NULL,0,0);
-	mciSendString("open .\\assets\\sons\\tecla3.mp3 type MPEGVideo alias tecla3",NULL,0,0);
 	
-	waveOutSetVolume(0,0x88888888);
 	settextstyle(SANS_SERIF_FONT,HORIZ_DIR,4);
 	
 	int LarTela;
@@ -885,18 +867,15 @@ int Tutorial(){
 	LarTela = 1280;
 	AltTela = 720;
 	
-<<<<<<< HEAD
-=======
 	void *botao1_img = load_image(".\\Hud\\Voltar.bmp",208,84,0,0);
 	void *botao1_mask = load_image(".\\Hud\\VoltarWB.bmp",208,84,0,0);
 	
 	Botao *botao_voltar = criar_botao("voltar",botao1_img,botao1_mask,50,600,208,84);
 	
-	BotoesVetor *botoes = criar_vetor_botoes(4);
+	BotoesVetor *botoes = criar_vetor_botoes(1);
 	
 	append_vetor_botoes(botoes,botao_voltar);
 	
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
 	void *img_menu = load_image("Tutorial.bmp",LarTela,AltTela,0,0);
 	
 //	Botao *botao_voltar = criar_botao("voltar",0,0,30,AltTela - 50,100,50);
@@ -908,26 +887,14 @@ int Tutorial(){
 		gt2 = GetTickCount();
 		if(gt2 - gt1 > 1000/60) {
 			if(pg == 1) pg = 2; else pg = 1;
-<<<<<<< HEAD
+
 	 		setvisualpage(pg);	
 			cleardevice();
-			putimage(0,0,img_menu,COPY_PUT);
-//			mostrarBotao(botao_voltar);
-//			if(ismouseclick(WM_LBUTTONDOWN)){
-//			
-//				if(X > 30 && X < 200 && Y > 650 && Y < 700){
-//					return Menu();
-//					break;
-//				}
-//				clearmouseclick(WM_LBUTTONDOWN);
-//			}
-=======
-	 		setvisualpage(pg);
-	 		cleardevice();
+	
 			putimage(0,0,img_menu,COPY_PUT);
 			mostrarBotoes(botoes);
 			colisaoMouseBotao(botoes);
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
+
 			setactivepage(pg);		
 		}
 	}
@@ -967,17 +934,9 @@ int Menu(){
 	append_vetor_botoes(botoes,botao_iniciar);
 	append_vetor_botoes(botoes,botao_intro);
 	append_vetor_botoes(botoes,botao_sair);
-	
-<<<<<<< HEAD
-	mciSendString("open .\\Audios\\MusicaTema.mp3 type MPEGVideo alias Tema", NULL, 0, 0);
-	waveOutSetVolume(0,0xFFFFFFFF);
-	mciSendString("play Tema repeat", NULL, 0, 0);
-	
-    void *img_menu = load_image("HorrorHut2.bmp",LarTela,AltTela,0,0);
-=======
+
     void *img_menu = load_image("HorrorHut.bmp",LarTela,AltTela,0,0);
 
->>>>>>> 88dbd1a4ddcf481900f99a17f97d4a6a675e0674
 	int gt2;
 	
 	POINT P;
@@ -995,7 +954,6 @@ int Menu(){
 			colisaoMouseBotao(botoes);
 			setactivepage(pg);
 		}
-		
 	}
 	
 	deleteImage(botao1_img);
